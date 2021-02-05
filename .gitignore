@@ -1,0 +1,11 @@
+Gemfile.lock
+keyfile.json
+coverage/
+doc/
+pkg/
+html/
+vendor/bundle/
+.DS_STORE
+.bundle/
+.vagrant/
+.yardoc/
