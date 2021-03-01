@@ -334,8 +334,8 @@ describe Google::Cloud::Env do
 
   it "recognizes GCE_METADATA_HOST" do
     env_vars = { "GCE_METADATA_HOST" => "mymetadata.example.com" }
-    callable = proc do |url:, **opts|
-      assert_equal "http://mymetadata.example.com", url
+    callable = proc do |opts|
+      assert_equal "http://mymetadata.example.com", opts[:url]
       :callable
     end
     Faraday.stub :new, callable do
@@ -345,8 +345,8 @@ describe Google::Cloud::Env do
   end
 
   it "recognizes host override param" do
-    callable = proc do |url:, **opts|
-      assert_equal "http://mymetadata.example.com", url
+    callable = proc do |opts|
+      assert_equal "http://mymetadata.example.com", opts[:url]
       :callable
     end
     Faraday.stub :new, callable do

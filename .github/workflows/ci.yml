@@ -1,0 +1,54 @@
+name: CI
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  CI:
+    if: ${{ github.repository == 'googleapis/ruby-cloud-env' }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            ruby: "2.5"
+            task: test
+          - os: ubuntu-latest
+            ruby: "2.6"
+            task: test
+          - os: ubuntu-latest
+            ruby: "2.7"
+            task: test
+          - os: ubuntu-latest
+            ruby: "3.0"
+            task: test
+          - os: macos-latest
+            ruby: "2.7"
+            task: test
+          - os: windows-latest
+            ruby: "2.7"
+            task: test
+          - os: ubuntu-latest
+            ruby: "2.7"
+            task: rubocop
+          - os: ubuntu-latest
+            ruby: "2.7"
+            task: build , yardoc
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Install Ruby ${{ matrix.ruby }}
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: "${{ matrix.ruby }}"
+    - name: Install tools
+      shell: bash
+      run: "gem install --no-document toys"
+    - name: Test ${{ matrix.task }}
+      shell: bash
+      run: toys do ${{ matrix.task }}
