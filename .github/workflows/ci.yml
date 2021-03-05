@@ -48,7 +48,7 @@ jobs:
         ruby-version: "${{ matrix.ruby }}"
     - name: Install tools
       shell: bash
-      run: "gem install --no-document toys"
+      run: "bundle install && gem install --no-document toys"
     - name: Test ${{ matrix.task }}
       shell: bash
-      run: toys do ${{ matrix.task }}
+      run: toys do ${{ matrix.task }} < /dev/null
