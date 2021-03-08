@@ -1,11 +1,10 @@
 # Release History
 
-## [1.5.0](https://www.github.com/googleapis/ruby-cloud-env/compare/ruby-cloud-env/v1.4.0...v1.5.0) (2021-03-08)
+### 1.5.0 (2021-03-08)
 
+#### Features
 
-### Features
-
-* Drop support for Ruby 2.4 and add support for Ruby 3.0 ([4d64a62](https://www.github.com/googleapis/ruby-cloud-env/commit/4d64a6237ffe80387718b1f5aba49cb16ca5bfda))
+* Drop support for Ruby 2.4 and add support for Ruby 3.0
 
 ### 1.4.0 / 2020-10-12
 
