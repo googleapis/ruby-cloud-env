@@ -18,7 +18,7 @@ include :fileutils
 include :gems
 
 flag :rubygems_token, "--rubygems-token=TOKEN"
-flag :dry_run, default: !::ENV["RELEASE_DRY_RUN"].to_s.empty?
+flag :dry_run, default: ["true", "gem"].include?(::ENV["RELEASE_DRY_RUN"].to_s)
 
 def run
   gem "gems", "~> 1.2"
