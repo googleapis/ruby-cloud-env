@@ -10,6 +10,7 @@ export PATH=$GEM_HOME/bin:$PATH
 python3 -m pip install git+https://github.com/googleapis/releasetool
 python3 -m pip install gcp-docuploader
 gem install --no-document toys
+bundle install
 
 python3 -m releasetool publish-reporter-script > /tmp/publisher-script; source /tmp/publisher-script
 
