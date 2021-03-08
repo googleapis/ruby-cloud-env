@@ -20,7 +20,7 @@ include :fileutils
 
 flag :credentials, "--credentials=PATH"
 flag :bucket, "--bucket=NAME"
-flag :dry_run, default: !::ENV["RELEASE_DRY_RUN"].to_s.empty?
+flag :dry_run, default: ["true", "docs"].include?(::ENV["RELEASE_DRY_RUN"].to_s)
 
 def run
   ::Dir.chdir package_directory
