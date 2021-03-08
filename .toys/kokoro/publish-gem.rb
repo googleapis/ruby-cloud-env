@@ -30,7 +30,7 @@ def run
   if dry_run
     puts "DRY RUN: Skipping Rubygems push of #{gem_path}"
   else
-    push_gem
+    push_gem gem_path
   end
 end
 
@@ -46,7 +46,7 @@ def build_gem
   gem_path
 end
 
-def push_gem
+def push_gem gem_path
   response = ::Gems.push ::File.new gem_path
   puts response
   raise "Gem push didn't report success" unless response.include? "Successfully registered gem:"
