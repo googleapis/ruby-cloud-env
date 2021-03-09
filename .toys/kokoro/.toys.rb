@@ -33,7 +33,7 @@ mixin "kokoro-tools" do
 
   def package_name
     @package_name ||=
-      ::ENV["PACKAGE"] || begin
+      ::ENV["RELEASE_PACKAGE"] || ::ENV["PACKAGE"] || begin
         files = ::Dir.glob("*.gemspec")
         raise "Unable to determine package" unless files.length == 1
         ::File.basename files.first, ".gemspec"

@@ -41,13 +41,15 @@ end
 
 def write_metadata
   allowed_fields = [
-    "name", "version", "language", "distribution_name",
-    "product_page", "github_repository", "issue_tracker"
+    "name", "version", "language", "distribution-name",
+    "product-page", "github-repository", "issue-tracker"
   ]
   metadata = ::JSON.parse ::File.read ".repo-metadata.json"
-  metadata["version"] = package_version
+  metadata.transform_keys! { |k| k.tr "_", "-" }
   metadata.keep_if { |k, _v| allowed_fields.include? k }
-  args = metadata.transform_keys { |k| "--#{k.tr '_', '-'}" }.to_a.flatten
+  metadata["version"] = package_version
+  metadata["name"] = metadata["distribution-name"]
+  args = metadata.transform_keys { |k| "--#{k}" }.to_a.flatten
   cmd = ["python3", "-m", "docuploader", "create-metadata"] + args
   exec cmd, chdir: "doc"
 end
