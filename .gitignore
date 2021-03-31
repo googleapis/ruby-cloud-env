@@ -4,6 +4,8 @@ coverage/
 doc/
 pkg/
 html/
+/node_modules/
+/package-lock.json
 vendor/bundle/
 .DS_STORE
 .bundle/

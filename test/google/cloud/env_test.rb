@@ -132,204 +132,204 @@ describe Google::Cloud::Env do
   it "returns correct values when running on cloud run" do
     env = ::Google::Cloud::Env.new env: knative_env, connection: gce_conn
 
-    env.knative?.must_equal true
-    env.app_engine?.must_equal false
-    env.app_engine_flexible?.must_equal false
-    env.app_engine_standard?.must_equal false
-    env.kubernetes_engine?.must_equal false
-    env.cloud_shell?.must_equal false
-    env.compute_engine?.must_equal true
-    env.raw_compute_engine?.must_equal false
+    _(env.knative?).must_equal true
+    _(env.app_engine?).must_equal false
+    _(env.app_engine_flexible?).must_equal false
+    _(env.app_engine_standard?).must_equal false
+    _(env.kubernetes_engine?).must_equal false
+    _(env.cloud_shell?).must_equal false
+    _(env.compute_engine?).must_equal true
+    _(env.raw_compute_engine?).must_equal false
 
-    env.project_id.must_equal project_id
-    env.numeric_project_id.must_equal numeric_project_id
-    env.instance_name.must_equal instance_name
-    env.instance_description.must_equal instance_description
-    env.instance_machine_type.must_equal instance_machine_type
-    env.instance_tags.must_equal instance_tags
+    _(env.project_id).must_equal project_id
+    _(env.numeric_project_id).must_equal numeric_project_id
+    _(env.instance_name).must_equal instance_name
+    _(env.instance_description).must_equal instance_description
+    _(env.instance_machine_type).must_equal instance_machine_type
+    _(env.instance_tags).must_equal instance_tags
 
-    env.app_engine_service_id.must_be_nil
-    env.app_engine_service_version.must_be_nil
-    env.app_engine_memory_mb.must_be_nil
+    _(env.app_engine_service_id).must_be_nil
+    _(env.app_engine_service_version).must_be_nil
+    _(env.app_engine_memory_mb).must_be_nil
 
-    env.kubernetes_engine_cluster_name.must_be_nil
-    env.kubernetes_engine_namespace_id.must_be_nil
+    _(env.kubernetes_engine_cluster_name).must_be_nil
+    _(env.kubernetes_engine_namespace_id).must_be_nil
   end
 
   it "returns correct values when running on app engine flex" do
     env = ::Google::Cloud::Env.new env: gae_flex_env, connection: gce_conn
 
-    env.knative?.must_equal false
-    env.app_engine?.must_equal true
-    env.app_engine_flexible?.must_equal true
-    env.app_engine_standard?.must_equal false
-    env.kubernetes_engine?.must_equal false
-    env.cloud_shell?.must_equal false
-    env.compute_engine?.must_equal true
-    env.raw_compute_engine?.must_equal false
+    _(env.knative?).must_equal false
+    _(env.app_engine?).must_equal true
+    _(env.app_engine_flexible?).must_equal true
+    _(env.app_engine_standard?).must_equal false
+    _(env.kubernetes_engine?).must_equal false
+    _(env.cloud_shell?).must_equal false
+    _(env.compute_engine?).must_equal true
+    _(env.raw_compute_engine?).must_equal false
 
-    env.project_id.must_equal project_id
-    env.numeric_project_id.must_equal numeric_project_id
-    env.instance_name.must_equal instance_name
-    env.instance_description.must_equal instance_description
-    env.instance_machine_type.must_equal instance_machine_type
-    env.instance_tags.must_equal instance_tags
+    _(env.project_id).must_equal project_id
+    _(env.numeric_project_id).must_equal numeric_project_id
+    _(env.instance_name).must_equal instance_name
+    _(env.instance_description).must_equal instance_description
+    _(env.instance_machine_type).must_equal instance_machine_type
+    _(env.instance_tags).must_equal instance_tags
 
-    env.app_engine_service_id.must_equal gae_service
-    env.app_engine_service_version.must_equal gae_version
-    env.app_engine_memory_mb.must_equal gae_memory_mb
+    _(env.app_engine_service_id).must_equal gae_service
+    _(env.app_engine_service_version).must_equal gae_version
+    _(env.app_engine_memory_mb).must_equal gae_memory_mb
 
-    env.kubernetes_engine_cluster_name.must_be_nil
-    env.kubernetes_engine_namespace_id.must_be_nil
+    _(env.kubernetes_engine_cluster_name).must_be_nil
+    _(env.kubernetes_engine_namespace_id).must_be_nil
   end
 
   it "returns correct values when running on app engine standard" do
     env = ::Google::Cloud::Env.new env: gae_standard_env, connection: gce_conn
 
-    env.knative?.must_equal false
-    env.app_engine?.must_equal true
-    env.app_engine_flexible?.must_equal false
-    env.app_engine_standard?.must_equal true
-    env.kubernetes_engine?.must_equal false
-    env.cloud_shell?.must_equal false
-    env.compute_engine?.must_equal true
-    env.raw_compute_engine?.must_equal false
+    _(env.knative?).must_equal false
+    _(env.app_engine?).must_equal true
+    _(env.app_engine_flexible?).must_equal false
+    _(env.app_engine_standard?).must_equal true
+    _(env.kubernetes_engine?).must_equal false
+    _(env.cloud_shell?).must_equal false
+    _(env.compute_engine?).must_equal true
+    _(env.raw_compute_engine?).must_equal false
 
-    env.project_id.must_equal project_id
-    env.numeric_project_id.must_equal numeric_project_id
-    env.instance_name.must_equal instance_name
-    env.instance_description.must_equal instance_description
-    env.instance_machine_type.must_equal instance_machine_type
-    env.instance_tags.must_equal instance_tags
+    _(env.project_id).must_equal project_id
+    _(env.numeric_project_id).must_equal numeric_project_id
+    _(env.instance_name).must_equal instance_name
+    _(env.instance_description).must_equal instance_description
+    _(env.instance_machine_type).must_equal instance_machine_type
+    _(env.instance_tags).must_equal instance_tags
 
-    env.app_engine_service_id.must_equal gae_service
-    env.app_engine_service_version.must_equal gae_version
-    env.app_engine_memory_mb.must_equal gae_memory_mb
+    _(env.app_engine_service_id).must_equal gae_service
+    _(env.app_engine_service_version).must_equal gae_version
+    _(env.app_engine_memory_mb).must_equal gae_memory_mb
 
-    env.kubernetes_engine_cluster_name.must_be_nil
-    env.kubernetes_engine_namespace_id.must_be_nil
+    _(env.kubernetes_engine_cluster_name).must_be_nil
+    _(env.kubernetes_engine_namespace_id).must_be_nil
   end
 
   it "returns correct values when running on kubernetes engine" do
     env = ::Google::Cloud::Env.new env: gke_env, connection: gke_conn
 
-    env.knative?.must_equal false
-    env.app_engine?.must_equal false
-    env.app_engine_flexible?.must_equal false
-    env.app_engine_standard?.must_equal false
-    env.kubernetes_engine?.must_equal true
-    env.cloud_shell?.must_equal false
-    env.compute_engine?.must_equal true
-    env.raw_compute_engine?.must_equal false
+    _(env.knative?).must_equal false
+    _(env.app_engine?).must_equal false
+    _(env.app_engine_flexible?).must_equal false
+    _(env.app_engine_standard?).must_equal false
+    _(env.kubernetes_engine?).must_equal true
+    _(env.cloud_shell?).must_equal false
+    _(env.compute_engine?).must_equal true
+    _(env.raw_compute_engine?).must_equal false
 
-    env.project_id.must_equal project_id
-    env.numeric_project_id.must_equal numeric_project_id
-    env.instance_name.must_equal instance_name
-    env.instance_description.must_equal instance_description
-    env.instance_machine_type.must_equal instance_machine_type
-    env.instance_tags.must_equal instance_tags
+    _(env.project_id).must_equal project_id
+    _(env.numeric_project_id).must_equal numeric_project_id
+    _(env.instance_name).must_equal instance_name
+    _(env.instance_description).must_equal instance_description
+    _(env.instance_machine_type).must_equal instance_machine_type
+    _(env.instance_tags).must_equal instance_tags
 
-    env.app_engine_service_id.must_be_nil
-    env.app_engine_service_version.must_be_nil
-    env.app_engine_memory_mb.must_be_nil
+    _(env.app_engine_service_id).must_be_nil
+    _(env.app_engine_service_version).must_be_nil
+    _(env.app_engine_memory_mb).must_be_nil
 
-    env.kubernetes_engine_cluster_name.must_equal gke_cluster
-    env.kubernetes_engine_namespace_id.must_equal gke_namespace
+    _(env.kubernetes_engine_cluster_name).must_equal gke_cluster
+    _(env.kubernetes_engine_namespace_id).must_equal gke_namespace
   end
 
   it "returns correct values when running on cloud shell" do
     env = ::Google::Cloud::Env.new env: cloud_shell_env, connection: gce_conn
 
-    env.knative?.must_equal false
-    env.app_engine?.must_equal false
-    env.app_engine_flexible?.must_equal false
-    env.app_engine_standard?.must_equal false
-    env.kubernetes_engine?.must_equal false
-    env.cloud_shell?.must_equal true
-    env.compute_engine?.must_equal true
-    env.raw_compute_engine?.must_equal false
+    _(env.knative?).must_equal false
+    _(env.app_engine?).must_equal false
+    _(env.app_engine_flexible?).must_equal false
+    _(env.app_engine_standard?).must_equal false
+    _(env.kubernetes_engine?).must_equal false
+    _(env.cloud_shell?).must_equal true
+    _(env.compute_engine?).must_equal true
+    _(env.raw_compute_engine?).must_equal false
 
-    env.project_id.must_equal project_id
-    env.numeric_project_id.must_be_nil
-    env.instance_name.must_equal instance_name
-    env.instance_description.must_equal instance_description
-    env.instance_machine_type.must_equal instance_machine_type
-    env.instance_tags.must_equal instance_tags
+    _(env.project_id).must_equal project_id
+    _(env.numeric_project_id).must_be_nil
+    _(env.instance_name).must_equal instance_name
+    _(env.instance_description).must_equal instance_description
+    _(env.instance_machine_type).must_equal instance_machine_type
+    _(env.instance_tags).must_equal instance_tags
 
-    env.app_engine_service_id.must_be_nil
-    env.app_engine_service_version.must_be_nil
-    env.app_engine_memory_mb.must_be_nil
+    _(env.app_engine_service_id).must_be_nil
+    _(env.app_engine_service_version).must_be_nil
+    _(env.app_engine_memory_mb).must_be_nil
 
-    env.kubernetes_engine_cluster_name.must_be_nil
-    env.kubernetes_engine_namespace_id.must_be_nil
+    _(env.kubernetes_engine_cluster_name).must_be_nil
+    _(env.kubernetes_engine_namespace_id).must_be_nil
   end
 
   it "returns correct values when running on compute engine" do
     env = ::Google::Cloud::Env.new env: gce_env, connection: gce_conn
 
-    env.knative?.must_equal false
-    env.app_engine?.must_equal false
-    env.app_engine_flexible?.must_equal false
-    env.app_engine_standard?.must_equal false
-    env.kubernetes_engine?.must_equal false
-    env.cloud_shell?.must_equal false
-    env.compute_engine?.must_equal true
-    env.raw_compute_engine?.must_equal true
+    _(env.knative?).must_equal false
+    _(env.app_engine?).must_equal false
+    _(env.app_engine_flexible?).must_equal false
+    _(env.app_engine_standard?).must_equal false
+    _(env.kubernetes_engine?).must_equal false
+    _(env.cloud_shell?).must_equal false
+    _(env.compute_engine?).must_equal true
+    _(env.raw_compute_engine?).must_equal true
 
-    env.project_id.must_equal project_id
-    env.numeric_project_id.must_equal numeric_project_id
-    env.instance_name.must_equal instance_name
-    env.instance_description.must_equal instance_description
-    env.instance_machine_type.must_equal instance_machine_type
-    env.instance_tags.must_equal instance_tags
+    _(env.project_id).must_equal project_id
+    _(env.numeric_project_id).must_equal numeric_project_id
+    _(env.instance_name).must_equal instance_name
+    _(env.instance_description).must_equal instance_description
+    _(env.instance_machine_type).must_equal instance_machine_type
+    _(env.instance_tags).must_equal instance_tags
 
-    env.app_engine_service_id.must_be_nil
-    env.app_engine_service_version.must_be_nil
-    env.app_engine_memory_mb.must_be_nil
+    _(env.app_engine_service_id).must_be_nil
+    _(env.app_engine_service_version).must_be_nil
+    _(env.app_engine_memory_mb).must_be_nil
 
-    env.kubernetes_engine_cluster_name.must_be_nil
-    env.kubernetes_engine_namespace_id.must_be_nil
+    _(env.kubernetes_engine_cluster_name).must_be_nil
+    _(env.kubernetes_engine_namespace_id).must_be_nil
   end
 
   it "returns correct values when not running on gcp" do
     env = ::Google::Cloud::Env.new env: gce_env, connection: ext_conn
 
-    env.knative?.must_equal false
-    env.app_engine?.must_equal false
-    env.app_engine_flexible?.must_equal false
-    env.app_engine_standard?.must_equal false
-    env.kubernetes_engine?.must_equal false
-    env.cloud_shell?.must_equal false
-    env.compute_engine?.must_equal false
-    env.raw_compute_engine?.must_equal false
+    _(env.knative?).must_equal false
+    _(env.app_engine?).must_equal false
+    _(env.app_engine_flexible?).must_equal false
+    _(env.app_engine_standard?).must_equal false
+    _(env.kubernetes_engine?).must_equal false
+    _(env.cloud_shell?).must_equal false
+    _(env.compute_engine?).must_equal false
+    _(env.raw_compute_engine?).must_equal false
 
-    env.project_id.must_be_nil
-    env.numeric_project_id.must_be_nil
-    env.instance_name.must_be_nil
-    env.instance_description.must_be_nil
-    env.instance_machine_type.must_be_nil
-    env.instance_tags.must_be_nil
+    _(env.project_id).must_be_nil
+    _(env.numeric_project_id).must_be_nil
+    _(env.instance_name).must_be_nil
+    _(env.instance_description).must_be_nil
+    _(env.instance_machine_type).must_be_nil
+    _(env.instance_tags).must_be_nil
 
-    env.app_engine_service_id.must_be_nil
-    env.app_engine_service_version.must_be_nil
-    env.app_engine_memory_mb.must_be_nil
+    _(env.app_engine_service_id).must_be_nil
+    _(env.app_engine_service_version).must_be_nil
+    _(env.app_engine_memory_mb).must_be_nil
 
-    env.kubernetes_engine_cluster_name.must_be_nil
-    env.kubernetes_engine_namespace_id.must_be_nil
+    _(env.kubernetes_engine_cluster_name).must_be_nil
+    _(env.kubernetes_engine_namespace_id).must_be_nil
   end
 
   it "fails if requests fail and there are not enough retries" do
     conn = gce_conn failure_count: 2
     env = ::Google::Cloud::Env.new env: gce_env, retry_count: 1,
                                    connection: conn
-    env.compute_engine?.must_equal false
+    _(env.compute_engine?).must_equal false
   end
 
   it "succeeds if requests fail and there are sufficient retries" do
     conn = gce_conn failure_count: 2
     env = ::Google::Cloud::Env.new env: gce_env, retry_count: 2,
                                    connection: conn
-    env.compute_engine?.must_equal true
+    _(env.compute_engine?).must_equal true
   end
 
   it "recognizes GCE_METADATA_HOST" do
