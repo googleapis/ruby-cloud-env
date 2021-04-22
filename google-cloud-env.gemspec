@@ -1,8 +1,9 @@
 require File.expand_path("lib/google/cloud/env/version", __dir__)
+gem_version = Google::Cloud::Env::VERSION
 
 Gem::Specification.new do |gem|
   gem.name          = "google-cloud-env"
-  gem.version       = Google::Cloud::Env::VERSION
+  gem.version       = gem_version
 
   gem.authors       = ["Daniel Azuma"]
   gem.email         = ["dazuma@google.com"]
@@ -34,9 +35,9 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "yard-doctest", "~> 0.1.13"
 
   if gem.respond_to? :metadata
-    gem.metadata["changelog_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{version}/file.CHANGELOG.html"
+    gem.metadata["changelog_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{gem_version}/file.CHANGELOG.html"
     gem.metadata["source_code_uri"] = "https://github.com/googleapis/ruby-cloud-env"
     gem.metadata["bug_tracker_uri"] = "https://github.com/googleapis/ruby-cloud-env/issues"
-    gem.metadata["documentation_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{version}"
+    gem.metadata["documentation_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{gem_version}"
   end
 end
