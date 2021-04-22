@@ -11,7 +11,7 @@ Gem::Specification.new do |gem|
                         "project ID, whether App Engine is running, what tags are set on the VM instance, and much " \
                         "more."
   gem.summary       = "Google Cloud Platform hosting environment information."
-  gem.homepage      = "https://github.com/googleapis/google-cloud-ruby/tree/master/google-cloud-env"
+  gem.homepage      = "https://github.com/googleapis/ruby-cloud-env"
   gem.license       = "Apache-2.0"
 
   gem.files         = `git ls-files -- lib/*`.split("\n") +
@@ -32,4 +32,11 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "simplecov", "~> 0.9"
   gem.add_development_dependency "yard", "~> 0.9"
   gem.add_development_dependency "yard-doctest", "~> 0.1.13"
+
+  if spec.respond_to? :metadata
+    spec.metadata["changelog_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{version}/file.CHANGELOG.html"
+    spec.metadata["source_code_uri"] = "https://github.com/googleapis/ruby-cloud-env"
+    spec.metadata["bug_tracker_uri"] = "https://github.com/googleapis/ruby-cloud-env/issues"
+    spec.metadata["documentation_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{version}"
+  end
 end
