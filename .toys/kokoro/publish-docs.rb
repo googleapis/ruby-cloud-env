@@ -47,7 +47,7 @@ def write_metadata
   metadata = ::JSON.parse ::File.read ".repo-metadata.json"
   metadata.transform_keys! { |k| k.tr "_", "-" }
   metadata.keep_if { |k, _v| allowed_fields.include? k }
-  metadata["version"] = package_version
+  metadata["version"] = "v#{package_version}"
   metadata["name"] = metadata["distribution-name"]
   args = metadata.transform_keys { |k| "--#{k}" }.to_a.flatten
   cmd = ["python3", "-m", "docuploader", "create-metadata"] + args
