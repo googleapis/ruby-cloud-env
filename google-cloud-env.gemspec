@@ -33,10 +33,10 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "yard", "~> 0.9"
   gem.add_development_dependency "yard-doctest", "~> 0.1.13"
 
-  if spec.respond_to? :metadata
-    spec.metadata["changelog_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{version}/file.CHANGELOG.html"
-    spec.metadata["source_code_uri"] = "https://github.com/googleapis/ruby-cloud-env"
-    spec.metadata["bug_tracker_uri"] = "https://github.com/googleapis/ruby-cloud-env/issues"
-    spec.metadata["documentation_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{version}"
+  if gem.respond_to? :metadata
+    gem.metadata["changelog_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{version}/file.CHANGELOG.html"
+    gem.metadata["source_code_uri"] = "https://github.com/googleapis/ruby-cloud-env"
+    gem.metadata["bug_tracker_uri"] = "https://github.com/googleapis/ruby-cloud-env/issues"
+    gem.metadata["documentation_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{version}"
   end
 end
