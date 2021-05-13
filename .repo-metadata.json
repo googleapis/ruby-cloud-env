@@ -3,5 +3,6 @@
     "distribution_name": "google-cloud-env",
     "name_pretty": "Google Cloud Platform environment queries",
     "language": "ruby",
-    "repo": "googleapis/ruby-cloud-env"
+    "repo": "googleapis/ruby-cloud-env",
+    "library_type": "GAPIC_MANUAL"
 }
