@@ -4,5 +4,5 @@
     "name_pretty": "Google Cloud Platform environment queries",
     "language": "ruby",
     "repo": "googleapis/ruby-cloud-env",
-    "library_type": "GAPIC_MANUAL"
+    "library_type": "CORE"
 }
