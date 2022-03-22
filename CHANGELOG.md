@@ -1,5 +1,12 @@
 # Release History
 
+## [1.6.0](https://www.github.com/googleapis/ruby-cloud-env/compare/google-cloud-env/v1.5.0...google-cloud-env/v1.6.0) (2022-03-21)
+
+
+### Features
+
+* **deps:** update actions/setup-node action to v3 ([#27](https://www.github.com/googleapis/ruby-cloud-env/issues/27)) ([ffb9430](https://www.github.com/googleapis/ruby-cloud-env/commit/ffb9430e67bc4504d8c4f69203a0f911a90bff5a))
+
 ### 1.5.0 (2021-03-08)
 
 #### Features
