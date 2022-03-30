@@ -3,6 +3,7 @@
     "distribution_name": "google-cloud-env",
     "name_pretty": "Google Cloud Platform environment queries",
     "language": "ruby",
-    "repo": "googleapis/ruby-cloud-env",
-    "library_type": "CORE"
+    "library_type": "CORE",
+    "release_level": "stable",
+    "repo": "googleapis/ruby-cloud-env"
 }
