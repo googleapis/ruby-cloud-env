@@ -23,7 +23,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "faraday", ">= 0.17.3", "< 3.a"
 
   gem.add_development_dependency "autotest-suffix", "~> 1.1"
-  gem.add_development_dependency "google-style", "~> 1.26.0"
+  gem.add_development_dependency "google-style", "~> 1.26.1"
   gem.add_development_dependency "minitest", "~> 5.16"
   gem.add_development_dependency "minitest-autotest", "~> 1.0"
   gem.add_development_dependency "minitest-focus", "~> 1.1"
