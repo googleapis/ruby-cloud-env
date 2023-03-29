@@ -237,7 +237,7 @@ module Google
         return nil if cloud_shell?
 
         result = lookup_metadata "project", "numeric-project-id"
-        result.nil? ? nil : result.to_i
+        result&.to_i
       end
 
       ##
@@ -270,7 +270,7 @@ module Google
       #
       def instance_zone
         result = lookup_metadata "instance", "zone"
-        result.nil? ? nil : result.split("/").last
+        result&.split("/")&.last
       end
 
       ##
@@ -281,7 +281,7 @@ module Google
       #
       def instance_machine_type
         result = lookup_metadata "instance", "machine-type"
-        result.nil? ? nil : result.split("/").last
+        result&.split("/")&.last
       end
 
       ##
@@ -305,7 +305,7 @@ module Google
       #
       def instance_attribute_keys
         result = lookup_metadata "instance", "attributes/"
-        result.nil? ? nil : result.split
+        result&.split
       end
 
       ##
@@ -370,7 +370,7 @@ module Google
       #
       def app_engine_memory_mb
         result = env["GAE_MEMORY_MB"]
-        result.nil? ? nil : result.to_i
+        result&.to_i
       end
 
       ##
