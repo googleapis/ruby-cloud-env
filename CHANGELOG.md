@@ -1,5 +1,11 @@
 # Release History
 
+### 1.7.0 (2023-05-15)
+
+#### Features
+
+* Update minimum Ruby version to 2.6 ([#34](https://github.com/googleapis/ruby-cloud-env/issues/34)) 
+
 ### 1.6.0 (2022-03-21)
 
 * Support for Faraday 2
