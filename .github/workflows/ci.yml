@@ -14,9 +14,6 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            ruby: "2.6"
-            task: test
-          - os: ubuntu-latest
             ruby: "2.7"
             task: test
           - os: ubuntu-latest
@@ -25,26 +22,29 @@ jobs:
           - os: ubuntu-latest
             ruby: "3.1"
             task: test
+          - os: ubuntu-latest
+            ruby: "3.2"
+            task: test
           - os: macos-latest
-            ruby: "3.0"
+            ruby: "3.2"
             task: test
           - os: windows-latest
-            ruby: "3.0"
+            ruby: "3.2"
             task: test
           - os: ubuntu-latest
-            ruby: "3.0"
+            ruby: "3.2"
             task: rubocop , build , yardoc , linkinator
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Install Ruby ${{ matrix.ruby }}
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: "${{ matrix.ruby }}"
     - name: Install NodeJS 16.x
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: "16.x"
     - name: Install tools

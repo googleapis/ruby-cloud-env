@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+toys_version! ">= 0.15.2"
+
 expand :clean, paths: :gitignore
 
 expand :minitest do |t|
   t.libs = ["lib", "test"]
   t.use_bundler
   t.files = "test/**/*_test.rb"
+  t.mt_compat = true
 end
 
 expand :rubocop, bundler: true

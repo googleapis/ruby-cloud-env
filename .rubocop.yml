@@ -4,11 +4,9 @@ inherit_gem:
 AllCops:
   Exclude:
     - "test/**/*"
+    - "node_modules/**/*"
 Metrics/ClassLength:
-  Exclude:
-    - "lib/google/cloud/env.rb"
+  Enabled: false
 Naming/FileName:
   Exclude:
     - "lib/google-cloud-env.rb"
-Style/Documentation:
-  Enabled: false
