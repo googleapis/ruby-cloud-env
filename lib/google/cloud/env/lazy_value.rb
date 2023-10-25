@@ -39,10 +39,12 @@ module Google
       # configurable, as is the retry "interval", i.e. the time since the last
       # failure before an access will retry the computation.
       #
-      # A computation can cause its result (or error) to expire after a
-      # specified number of seconds using {LazyValue.expiring_value} or
-      # {LazyValue.raise_expiring_error}, forcing a recomputation on the next
-      # access following the expiration.
+      # By default, a computation's memoized value (or final error after
+      # retries have been exhausted) is maintained for the lifetime of the Ruby
+      # process. However, a computation can also cause its result (or error) to
+      # expire after a specified number of seconds, forcing a recomputation on
+      # the next access following expiration, by calling
+      # {LazyValue.expiring_value} or {LazyValue.raise_expiring_error}.
       #
       # We keep this private for now so we can move it in the future if we need
       # it to be available to other libraries. Currently it should not be used
