@@ -18,23 +18,14 @@ Gem::Specification.new do |gem|
   gem.files         = Dir.glob("lib/**/*.rb") + Dir.glob("*.md") + ["LICENSE", ".yardopts"]
   gem.require_paths = ["lib"]
 
-  gem.required_ruby_version = ">= 2.6"
+  gem.required_ruby_version = ">= 2.7"
 
-  gem.add_dependency "faraday", ">= 0.17.3", "< 3.a"
-
-  gem.add_development_dependency "autotest-suffix", "~> 1.1"
-  gem.add_development_dependency "google-style", "~> 1.26.1"
-  gem.add_development_dependency "minitest", "~> 5.16"
-  gem.add_development_dependency "minitest-autotest", "~> 1.0"
-  gem.add_development_dependency "minitest-focus", "~> 1.1"
-  gem.add_development_dependency "minitest-rg", "~> 5.2"
-  gem.add_development_dependency "redcarpet", "~> 3.0"
-  gem.add_development_dependency "yard", "~> 0.9"
+  gem.add_dependency "faraday", ">= 1.0", "< 3.a"
 
   if gem.respond_to? :metadata
-    gem.metadata["changelog_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{gem_version}/file.CHANGELOG.html"
+    gem.metadata["changelog_uri"] = "https://rubydoc.info/gems/google-cloud-env/#{gem_version}/CHANGELOG.md"
     gem.metadata["source_code_uri"] = "https://github.com/googleapis/ruby-cloud-env"
     gem.metadata["bug_tracker_uri"] = "https://github.com/googleapis/ruby-cloud-env/issues"
-    gem.metadata["documentation_uri"] = "https://googleapis.dev/ruby/google-cloud-env/v#{gem_version}"
+    gem.metadata["documentation_uri"] = "https://rubydoc.info/gems/google-cloud-env/#{gem_version}"
   end
 end

@@ -16,6 +16,10 @@
 module Google
   module Cloud
     class Env
+      ##
+      # Library version
+      # @return [String]
+      #
       VERSION = "1.6.0".freeze
     end
   end

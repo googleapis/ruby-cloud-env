@@ -16,8 +16,13 @@
 require "faraday"
 require "json"
 
-
+##
+# Namespace of Google products
+#
 module Google
+  ##
+  # Namespace of Google Cloud products
+  #
   module Cloud
     ##
     # # Google Cloud hosting environment
