@@ -429,11 +429,11 @@ describe Google::Cloud::Env::LazyValue do
       retries = Google::Cloud::Env::Retries.new max_tries: 10
       cache = Google::Cloud::Env::LazyValue.new retries: retries do
         count += 1
-        sleep 0.1
+        sleep 0.2
         raise "whoops4"
       end
       err = assert_raises RuntimeError do
-        cache.await max_time: 0.25, max_tries: nil
+        cache.await max_time: 0.5, max_tries: nil
       end
       assert_equal "whoops4", err.message
       assert_equal 3, count
@@ -497,7 +497,7 @@ describe Google::Cloud::Env::LazyValue do
       count = 0
       cache = Google::Cloud::Env::LazyValue.new do
         count += 1
-        sleep 0.2
+        sleep 0.3
         3
       end
       value1 = result2 = nil
