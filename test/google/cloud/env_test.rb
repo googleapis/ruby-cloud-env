@@ -32,13 +32,13 @@ describe Google::Cloud::Env do
   let(:gke_namespace) { "my-namespace" }
   let(:gae_standard_runtime) { "ruby25" }
 
-  let :knative_env do
+  let :knative_variables do
     {
       "K_SERVICE" => gae_service,
       "K_REVISION" => gae_version
     }
   end
-  let :gae_flex_env do
+  let :gae_flex_variables do
     {
       "GAE_INSTANCE" => instance_name,
       "GCLOUD_PROJECT" => project_id,
@@ -47,7 +47,7 @@ describe Google::Cloud::Env do
       "GAE_MEMORY_MB" => gae_memory_mb
     }
   end
-  let :gae_standard_env do
+  let :gae_standard_variables do
     {
       "GAE_INSTANCE" => instance_name,
       "GOOGLE_CLOUD_PROJECT" => project_id,
@@ -58,19 +58,36 @@ describe Google::Cloud::Env do
       "GAE_MEMORY_MB" => gae_memory_mb
     }
   end
-  let :gke_env do
+  let :gke_variables do
     {
       "GKE_NAMESPACE_ID" => gke_namespace
     }
   end
-  let :cloud_shell_env do
+  let :cloud_shell_variables do
     {
       "DEVSHELL_PROJECT_ID" => project_id,
       "DEVSHELL_GCLOUD_CONFIG" => "cloudshell-1234"
     }
   end
-  let(:gce_env) { {} }
-  let(:ext_env) { {} }
+  let(:gce_variables) { {} }
+  let(:ext_variables) { {} }
+  let(:empty_metadata_overrides) { Google::Cloud::Env::ComputeMetadata::Overrides.new }
+  let(:gce_metadata_overrides) do
+    overrides = empty_metadata_overrides.dup
+    overrides.add_ping
+    overrides.add "project/project-id", project_id
+    overrides.add "project/numeric-project-id", numeric_project_id.to_s
+    overrides.add "instance/name", instance_name
+    overrides.add "instance/zone", "/project/#{project_id}/zone/#{instance_zone}"
+    overrides.add "instance/description", instance_description
+    overrides.add "instance/machine-type", "/project/#{project_id}/zone/#{instance_machine_type}"
+    overrides.add "instance/tags", JSON.dump(instance_tags)
+  end
+  let(:gke_metadata_overrides) do
+    overrides = gce_metadata_overrides.dup
+    overrides.add "instance/attributes/cluster-name", gke_cluster
+  end
+  let(:env) { Google::Cloud::Env.new }
 
   def gce_stubs failure_count: 0
     ::Faraday::Adapter::Test::Stubs.new do |stub|
@@ -130,7 +147,9 @@ describe Google::Cloud::Env do
   end
 
   it "returns correct values when running on cloud run" do
-    env = ::Google::Cloud::Env.new env: knative_env, connection: gce_conn
+    env.variables.backing_data = knative_variables
+    env.compute_smbios.override_product_name = "Google"
+    env.compute_metadata.overrides = gce_metadata_overrides
 
     _(env.knative?).must_equal true
     _(env.app_engine?).must_equal false
@@ -157,7 +176,9 @@ describe Google::Cloud::Env do
   end
 
   it "returns correct values when running on app engine flex" do
-    env = ::Google::Cloud::Env.new env: gae_flex_env, connection: gce_conn
+    env.variables.backing_data = gae_flex_variables
+    env.compute_smbios.override_product_name = "Google"
+    env.compute_metadata.overrides = gce_metadata_overrides
 
     _(env.knative?).must_equal false
     _(env.app_engine?).must_equal true
@@ -184,7 +205,9 @@ describe Google::Cloud::Env do
   end
 
   it "returns correct values when running on app engine standard" do
-    env = ::Google::Cloud::Env.new env: gae_standard_env, connection: gce_conn
+    env.variables.backing_data = gae_standard_variables
+    env.compute_smbios.override_product_name = "Google"
+    env.compute_metadata.overrides = gce_metadata_overrides
 
     _(env.knative?).must_equal false
     _(env.app_engine?).must_equal true
@@ -211,7 +234,9 @@ describe Google::Cloud::Env do
   end
 
   it "returns correct values when running on kubernetes engine" do
-    env = ::Google::Cloud::Env.new env: gke_env, connection: gke_conn
+    env.variables.backing_data = gke_variables
+    env.compute_smbios.override_product_name = "Google"
+    env.compute_metadata.overrides = gke_metadata_overrides
 
     _(env.knative?).must_equal false
     _(env.app_engine?).must_equal false
@@ -238,7 +263,9 @@ describe Google::Cloud::Env do
   end
 
   it "returns correct values when running on cloud shell" do
-    env = ::Google::Cloud::Env.new env: cloud_shell_env, connection: gce_conn
+    env.variables.backing_data = cloud_shell_variables
+    env.compute_smbios.override_product_name = "Google"
+    env.compute_metadata.overrides = gce_metadata_overrides
 
     _(env.knative?).must_equal false
     _(env.app_engine?).must_equal false
@@ -265,7 +292,9 @@ describe Google::Cloud::Env do
   end
 
   it "returns correct values when running on compute engine" do
-    env = ::Google::Cloud::Env.new env: gce_env, connection: gce_conn
+    env.variables.backing_data = gce_variables
+    env.compute_smbios.override_product_name = "Google"
+    env.compute_metadata.overrides = gce_metadata_overrides
 
     _(env.knative?).must_equal false
     _(env.app_engine?).must_equal false
@@ -292,7 +321,9 @@ describe Google::Cloud::Env do
   end
 
   it "returns correct values when not running on gcp" do
-    env = ::Google::Cloud::Env.new env: gce_env, connection: ext_conn
+    env.variables.backing_data = ext_variables
+    env.compute_smbios.override_product_name = "Someone Else"
+    env.compute_metadata.overrides = empty_metadata_overrides
 
     _(env.knative?).must_equal false
     _(env.app_engine?).must_equal false
@@ -316,42 +347,5 @@ describe Google::Cloud::Env do
 
     _(env.kubernetes_engine_cluster_name).must_be_nil
     _(env.kubernetes_engine_namespace_id).must_be_nil
-  end
-
-  it "fails if requests fail and there are not enough retries" do
-    conn = gce_conn failure_count: 2
-    env = ::Google::Cloud::Env.new env: gce_env, retry_count: 1,
-                                   connection: conn
-    _(env.compute_engine?).must_equal false
-  end
-
-  it "succeeds if requests fail and there are sufficient retries" do
-    conn = gce_conn failure_count: 2
-    env = ::Google::Cloud::Env.new env: gce_env, retry_count: 2,
-                                   connection: conn
-    _(env.compute_engine?).must_equal true
-  end
-
-  it "recognizes GCE_METADATA_HOST" do
-    env_vars = { "GCE_METADATA_HOST" => "mymetadata.example.com" }
-    callable = proc do |opts|
-      assert_equal "http://mymetadata.example.com", opts[:url]
-      :callable
-    end
-    Faraday.stub :new, callable do
-      env = ::Google::Cloud::Env.new env: env_vars
-      assert_equal :callable, env.instance_variable_get(:@connection)
-    end
-  end
-
-  it "recognizes host override param" do
-    callable = proc do |opts|
-      assert_equal "http://mymetadata.example.com", opts[:url]
-      :callable
-    end
-    Faraday.stub :new, callable do
-      env = ::Google::Cloud::Env.new host: "mymetadata.example.com"
-      assert_equal :callable, env.instance_variable_get(:@connection)
-    end
   end
 end

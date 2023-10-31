@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-require "faraday"
 require "json"
+
+require "google/cloud/env/compute_metadata"
+require "google/cloud/env/compute_smbios"
+require "google/cloud/env/file_system"
+require "google/cloud/env/variables"
 
 ##
 # Namespace of Google products
@@ -25,16 +28,16 @@ module Google
   #
   module Cloud
     ##
-    # # Google Cloud hosting environment
+    # ## Google Cloud hosting environment
     #
     # This library provides access to information about the application's
-    # hosting environment if it is running on Google Cloud Platform. You may
+    # hosting environment if it is running on Google Cloud Platform. You can
     # use this library to determine which Google Cloud product is hosting your
     # application (e.g. App Engine, Kubernetes Engine), information about the
     # Google Cloud project hosting the application, information about the
     # virtual machine instance, authentication information, and so forth.
     #
-    # ## Usage
+    # ### Usage
     #
     # Obtain an instance of the environment info with:
     #
@@ -61,116 +64,182 @@ module Google
     # ```
     #
     class Env
-      # @private Base (host) URL for the metadata server.
-      METADATA_HOST = "http://169.254.169.254".freeze
-
-      # @private URL path for v1 of the metadata service.
-      METADATA_PATH_BASE = "/computeMetadata/v1".freeze
-
-      # @private URL path for metadata server root.
-      METADATA_ROOT_PATH = "/".freeze
-
-      # @private
-      METADATA_FAILURE_EXCEPTIONS = [
-        Faraday::TimeoutError,
-        Faraday::ConnectionFailed,
-        Errno::EHOSTDOWN,
-        Errno::ETIMEDOUT,
-        Timeout::Error
-      ].freeze
-
       ##
       # Create a new instance of the environment information.
-      # Most client should not need to call this directly. Obtain a singleton
-      # instance of the information from `Google::Cloud.env`. This constructor
-      # is provided to allow customization of the timeout/retry settings, as
-      # well as mocking for testing.
+      # Most clients should not need to call this directly. Obtain a singleton
+      # instance of the information from `Google::Cloud.env`.
       #
-      # @param [Hash] env Mock environment variables.
-      # @param [String] host The hostname or IP address of the metadata server.
-      #     Optional. If not specified, uses the `GCE_METADATA_HOST`,
-      #     environment variable or falls back to `169.254.167.254`.
-      # @param [Hash,false] metadata_cache The metadata cache. You may pass
-      #     a prepopuated cache, an empty cache (the default) or `false` to
-      #     disable the cache completely.
-      # @param [Numeric] open_timeout Timeout for opening http connections.
-      #     Defaults to 0.1.
-      # @param [Numeric] request_timeout Timeout for entire http requests.
-      #     Defaults to 1.0.
-      # @param [Integer] retry_count Number of times to retry http requests.
-      #     Defaults to 1. Note that retry remains in effect even if a custom
-      #     `connection` is provided.
-      # @param [Numeric] retry_interval Time between retries in seconds.
-      #     Defaults to 0.1.
-      # @param [Numeric] retry_backoff_factor Multiplier applied to the retry
-      #     interval on each retry. Defaults to 1.5.
-      # @param [Numeric] retry_max_interval Maximum time between retries in
-      #     seconds. Defaults to 0.5.
-      # @param [Faraday::Connection] connection Faraday connection to use.
-      #     If specified, overrides the `request_timeout` and `open_timeout`
-      #     settings.
+      def initialize
+        @variables = Variables.new
+        @file_system = FileSystem.new
+        @compute_smbios = ComputeSMBIOS.new
+        @compute_metadata = ComputeMetadata.new variables: @variables,
+                                                compute_smbios: @compute_smbios
+      end
+
+      ##
+      # The variables access object. Use this to make direct queries for
+      # environment variable information, or to mock out environment variables
+      # for testing.
       #
-      def initialize env: nil, host: nil, connection: nil, metadata_cache: nil,
-                     open_timeout: 0.1, request_timeout: 1.0,
-                     retry_count: 2, retry_interval: 0.1,
-                     retry_backoff_factor: 1.5, retry_max_interval: 0.5
-        @disable_metadata_cache = metadata_cache == false
-        @metadata_cache = metadata_cache || {}
-        @env = env || ::ENV
-        @retry_count = retry_count
-        @retry_interval = retry_interval
-        @retry_backoff_factor = retry_backoff_factor
-        @retry_max_interval = retry_max_interval
-        request_opts = { timeout: request_timeout, open_timeout: open_timeout }
-        host ||= @env["GCE_METADATA_HOST"] || METADATA_HOST
-        host = "http://#{host}" unless host.start_with? "http://"
-        @connection = connection || ::Faraday.new(url: host, request: request_opts)
+      # @return [Google::Cloud::Env::Variables]
+      #
+      attr_reader :variables
+
+      ##
+      # The variables access object. Use this to make direct queries for
+      # information from the file system, or to mock out the file system for
+      # testing.
+      #
+      # @return [Google::Cloud::Env::FileSystem]
+      #
+      attr_reader :file_system
+
+      ##
+      # The compute SMBIOS access object. Use this to make direct queries for
+      # compute SMBIOS information, or to mock out the SMBIOS for testing.
+      #
+      # @return [Google::Cloud::Env::ComputeSMBIOS]
+      #
+      attr_reader :compute_smbios
+
+      ##
+      # The compute metadata access object. Use this to make direct calls to
+      # compute metadata or configure how metadata server queries are done, or
+      # to mock out the metadata server for testing.
+      #
+      # @return [Google::Cloud::Env::ComputeMetadata]
+      #
+      attr_reader :compute_metadata
+
+      ##
+      # Determine whether the Google Compute Engine Metadata Service is running.
+      #
+      # This method is conservative. It may block for a short period (up to
+      # about 1.5 seconds) while attempting to contact the server, but if this
+      # fails, this method will return false, even though it is possible that a
+      # future call could succeed. In particular, this might happen in
+      # environments where there is a warmup time for the Metadata Server.
+      # Early calls before the Server has warmed up may return false, while
+      # later calls return true.
+      #
+      # @return [boolean]
+      #
+      def metadata?
+        compute_metadata.check_existence == :confirmed
+      end
+
+      ##
+      # Assert that the Metadata Server should be present, and wait for a
+      # confirmed connection to ensure it is up. In general, this will run at
+      # most {ComputeMetadata::DEFAULT_WARMUP_TIME} seconds to wait out the
+      # expected maximum warmup time, but a shorter timeout can be provided.
+      #
+      # This method is useful call during application initialization to wait
+      # for the Metadata Server to warm up and ensure that subsequent lookups
+      # should succeed.
+      #
+      # @param timeout [Numeric,nil] a timeout in seconds, or nil to wait
+      #     until we have conclusively decided one way or the other.
+      # @return [:confirmed] if we were able to confirm connection.
+      # @raise [MetadataServerNotResponding] if we were unable to confirm
+      #     connection with the Metadata Server, either because the timeout
+      #     expired or because the server seems to be down
+      #
+      def ensure_metadata timeout: nil
+        compute_metadata.ensure_existence timeout: timeout
+      end
+
+      ##
+      # Retrieve info from the Google Compute Engine Metadata Service.
+      # Returns `nil` if the Metadata Service is not running or the given
+      # data is not present.
+      #
+      # @param [String] type Type of metadata to look up. Currently supported
+      #     values are "project" and "instance".
+      # @param [String] entry Metadata entry path to look up.
+      # @param query [Hash{String => String}] Any additional query parameters
+      #     to send with the request.
+      #
+      # @return [String] the data
+      # @return [nil] if the Metadata Service is not running or there is no
+      #     data for the specified type and entry
+      # @raise [MetadataServerNotResponding] if a Metadata Service is expected
+      #     to be present in the current environment but didn't respond. This
+      #     could happen if the Server is still warming up.
+      #
+      def lookup_metadata type, entry, query: nil
+        compute_metadata.lookup "#{type}/#{entry}", query: query
+      end
+
+      ##
+      # Retrieve an HTTP response from the Google Compute Engine Metadata
+      # Service. Returns `nil` if the Metadata Service is not running.
+      # Otherwise, returns a {ComputeMetadata::Response} with a status code,
+      # data, and headers. The response could be 200 for success, 404 if the
+      # given entry is not present, or other HTTP result code for authorization
+      # or other errors.
+      #
+      # @param [String] type Type of metadata to look up. Currently supported
+      #     values are "project" and "instance".
+      # @param [String] entry Metadata entry path to look up.
+      # @param query [Hash{String => String}] Any additional query parameters
+      #     to send with the request.
+      #
+      # @return [Google::Cloud::Env::ComputeMetadata::Response] the response
+      # @return [nil] if the Metadata Service is not running
+      # @raise [MetadataServerNotResponding] if a Metadata Service is expected
+      #     to be present in the current environment but didn't respond. This
+      #     could happen if the Server is still warming up.
+      #
+      def lookup_metadata_response type, entry, query: nil
+        compute_metadata.lookup_response "#{type}/#{entry}", query: query
       end
 
       ##
       # Determine whether the application is running on a Knative-based
       # hosting platform, such as Cloud Run or Cloud Functions.
       #
-      # @return [Boolean]
+      # @return [boolean]
       #
       def knative?
-        env["K_SERVICE"] ? true : false
+        variables["K_SERVICE"] ? true : false
       end
 
       ##
       # Determine whether the application is running on Google App Engine.
       #
-      # @return [Boolean]
+      # @return [boolean]
       #
       def app_engine?
-        env["GAE_INSTANCE"] ? true : false
+        variables["GAE_INSTANCE"] ? true : false
       end
 
       ##
       # Determine whether the application is running on Google App Engine
       # Flexible Environment.
       #
-      # @return [Boolean]
+      # @return [boolean]
       #
       def app_engine_flexible?
-        app_engine? && env["GAE_ENV"] != "standard"
+        app_engine? && variables["GAE_ENV"] != "standard"
       end
 
       ##
       # Determine whether the application is running on Google App Engine
       # Standard Environment.
       #
-      # @return [Boolean]
+      # @return [boolean]
       #
       def app_engine_standard?
-        app_engine? && env["GAE_ENV"] == "standard"
+        app_engine? && variables["GAE_ENV"] == "standard"
       end
 
       ##
       # Determine whether the application is running on Google Kubernetes
       # Engine (GKE).
       #
-      # @return [Boolean]
+      # @return [boolean]
       #
       def kubernetes_engine?
         kubernetes_engine_cluster_name ? true : false
@@ -180,10 +249,10 @@ module Google
       ##
       # Determine whether the application is running on Google Cloud Shell.
       #
-      # @return [Boolean]
+      # @return [boolean]
       #
       def cloud_shell?
-        env["DEVSHELL_GCLOUD_CONFIG"] ? true : false
+        variables["DEVSHELL_GCLOUD_CONFIG"] ? true : false
       end
 
       ##
@@ -196,10 +265,10 @@ module Google
       # VM without using a higher level hosting product, use
       # {Env#raw_compute_engine?}.
       #
-      # @return [Boolean]
+      # @return [boolean]
       #
       def compute_engine?
-        metadata?
+        compute_smbios.google_compute?
       end
 
       ##
@@ -207,10 +276,10 @@ module Google
       # Engine without using a higher level hosting product such as App
       # Engine or Kubernetes Engine.
       #
-      # @return [Boolean]
+      # @return [boolean]
       #
       def raw_compute_engine?
-        !knative? && !app_engine? && !cloud_shell? && metadata? && !kubernetes_engine?
+        compute_engine? && !knative? && !app_engine? && !cloud_shell? && !kubernetes_engine?
       end
 
       ##
@@ -220,10 +289,10 @@ module Google
       # @return [String,nil]
       #
       def project_id
-        env["GOOGLE_CLOUD_PROJECT"] ||
-          env["GCLOUD_PROJECT"] ||
-          env["DEVSHELL_PROJECT_ID"] ||
-          lookup_metadata("project", "project-id")
+        variables["GOOGLE_CLOUD_PROJECT"] ||
+          variables["GCLOUD_PROJECT"] ||
+          variables["DEVSHELL_PROJECT_ID"] ||
+          compute_metadata.lookup("project/project-id")
       end
 
       ##
@@ -241,7 +310,7 @@ module Google
         # disable this for CloudShell to avoid confusion.
         return nil if cloud_shell?
 
-        result = lookup_metadata "project", "numeric-project-id"
+        result = compute_metadata.lookup "project/numeric-project-id"
         result&.to_i
       end
 
@@ -252,7 +321,7 @@ module Google
       # @return [String,nil]
       #
       def instance_name
-        env["GAE_INSTANCE"] || lookup_metadata("instance", "name")
+        variables["GAE_INSTANCE"] || compute_metadata.lookup("instance/name")
       end
 
       ##
@@ -263,7 +332,7 @@ module Google
       # @return [String,nil]
       #
       def instance_description
-        lookup_metadata "instance", "description"
+        compute_metadata.lookup "instance/description"
       end
 
       ##
@@ -274,7 +343,7 @@ module Google
       # @return [String,nil]
       #
       def instance_zone
-        result = lookup_metadata "instance", "zone"
+        result = compute_metadata.lookup "instance/zone"
         result&.split("/")&.last
       end
 
@@ -285,7 +354,7 @@ module Google
       # @return [String,nil]
       #
       def instance_machine_type
-        result = lookup_metadata "instance", "machine-type"
+        result = compute_metadata.lookup "instance/machine-type"
         result&.split("/")&.last
       end
 
@@ -297,7 +366,7 @@ module Google
       # @return [Array<String>,nil]
       #
       def instance_tags
-        result = lookup_metadata "instance", "tags"
+        result = compute_metadata.lookup "instance/tags"
         result.nil? ? nil : JSON.parse(result)
       end
 
@@ -309,7 +378,7 @@ module Google
       # @return [Array<String>,nil]
       #
       def instance_attribute_keys
-        result = lookup_metadata "instance", "attributes/"
+        result = compute_metadata.lookup "instance/attributes/"
         result&.split
       end
 
@@ -322,7 +391,7 @@ module Google
       # @return [String,nil]
       #
       def instance_attribute key
-        lookup_metadata "instance", "attributes/#{key}"
+        compute_metadata.lookup "instance/attributes/#{key}"
       end
 
       ##
@@ -332,7 +401,7 @@ module Google
       # @return [String,nil]
       #
       def knative_service_id
-        env["K_SERVICE"]
+        variables["K_SERVICE"]
       end
       alias knative_service_name knative_service_id
 
@@ -343,7 +412,7 @@ module Google
       # @return [String,nil]
       #
       def knative_service_revision
-        env["K_REVISION"]
+        variables["K_REVISION"]
       end
 
       ##
@@ -353,7 +422,7 @@ module Google
       # @return [String,nil]
       #
       def app_engine_service_id
-        env["GAE_SERVICE"]
+        variables["GAE_SERVICE"]
       end
       alias app_engine_service_name app_engine_service_id
 
@@ -364,7 +433,7 @@ module Google
       # @return [String,nil]
       #
       def app_engine_service_version
-        env["GAE_VERSION"]
+        variables["GAE_VERSION"]
       end
 
       ##
@@ -374,7 +443,7 @@ module Google
       # @return [Integer,nil]
       #
       def app_engine_memory_mb
-        result = env["GAE_MEMORY_MB"]
+        result = variables["GAE_MEMORY_MB"]
         result&.to_i
       end
 
@@ -403,54 +472,10 @@ module Google
         # below is set in some older versions of GKE, and the file below is
         # present in Kubernetes as of version 1.9, but it is possible that
         # alternatives will need to be found in the future.
-        env["GKE_NAMESPACE_ID"] || ::IO.read("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
-      rescue SystemCallError
-        nil
+        variables["GKE_NAMESPACE_ID"] ||
+          file_system.read("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
       end
       alias container_engine_namespace_id kubernetes_engine_namespace_id
-
-      ##
-      # Determine whether the Google Compute Engine Metadata Service is running.
-      #
-      # @return [Boolean]
-      #
-      def metadata?
-        path = METADATA_ROOT_PATH
-        if @disable_metadata_cache || !metadata_cache.include?(path)
-          metadata_cache[path] = retry_or_fail_with false do
-            resp = connection.get path do |req|
-              req.headers = { "Metadata-Flavor" => "Google" }
-            end
-            resp.status == 200 && resp.headers["Metadata-Flavor"] == "Google"
-          end
-        end
-        metadata_cache[path]
-      end
-
-      ##
-      # Retrieve info from the Google Compute Engine Metadata Service.
-      # Returns `nil` if the Metadata Service is not running or the given
-      # data is not present.
-      #
-      # @param [String] type Type of metadata to look up. Currently supported
-      #     values are "project" and "instance".
-      # @param [String] entry Metadata entry path to look up.
-      # @return [String,nil]
-      #
-      def lookup_metadata type, entry
-        return nil unless metadata?
-
-        path = "#{METADATA_PATH_BASE}/#{type}/#{entry}"
-        if @disable_metadata_cache || !metadata_cache.include?(path)
-          metadata_cache[path] = retry_or_fail_with nil do
-            resp = connection.get path do |req|
-              req.headers = { "Metadata-Flavor" => "Google" }
-            end
-            resp.status == 200 ? resp.body.strip : nil
-          end
-        end
-        metadata_cache[path]
-      end
 
       ##
       # Returns the global instance of {Google::Cloud::Env}.
@@ -459,29 +484,6 @@ module Google
       #
       def self.get
         ::Google::Cloud.env
-      end
-
-      private
-
-      attr_reader :connection
-      attr_reader :env
-      attr_reader :metadata_cache
-
-      def retry_or_fail_with error_result
-        retries_remaining = @retry_count
-        retry_interval = @retry_interval
-        begin
-          yield
-        rescue *METADATA_FAILURE_EXCEPTIONS
-          retries_remaining -= 1
-          if retries_remaining >= 0
-            sleep retry_interval
-            retry_interval *= @retry_backoff_factor
-            retry_interval = @retry_max_interval if retry_interval > @retry_max_interval
-            retry
-          end
-          error_result
-        end
       end
     end
 
