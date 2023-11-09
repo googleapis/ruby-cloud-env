@@ -132,6 +132,12 @@ module Google
         # Generally, you should create and populate an overrides object, then
         # set it using one of those methods.
         #
+        # An empty overrides object that contains no data is interpreted as a
+        # metadata server that does not respond and raises
+        # MetadataServerNotResponding. Otherwise, the overrides specifies what
+        # responses are returned for specified queries, and any query not
+        # explicitly set will result in a 404.
+        #
         class Overrides
           ##
           # Create an empty overrides object.
@@ -168,20 +174,6 @@ module Google
           def add path, string, query: nil, headers: nil
             headers = (headers || {}).merge FLAVOR_HEADER
             response = Response.new 200, string, headers
-            add_response path, response, query: query
-          end
-
-          ##
-          # Add an override to the object, specifying a 404 response indicating
-          # key not found.
-          #
-          # @param path [String] The key path (e.g. `project/project-id`)
-          # @param query [Hash{String => String}] Any additional query
-          #     parameters for the request.
-          #
-          # @return [self] for chaining
-          def add_404 path, query: nil
-            response = Response.new 404, "Not found", FLAVOR_HEADER
             add_response path, response, query: query
           end
 
@@ -249,13 +241,12 @@ module Google
           self.retry_timeout = DEFAULT_RETRY_TIMEOUT
           self.retry_interval = DEFAULT_RETRY_INTERVAL
           self.warmup_time = DEFAULT_WARMUP_TIME
-          @startup_time = Process.clock_gettime Process::CLOCK_MONOTONIC
           @cache = create_cache
-          @overrides = nil
-          @existence = nil
           # This mutex protects the overrides and existence settings.
           # Those values won't change within a synchronize block.
           @mutex = Thread::Mutex.new
+          reset_existence!
+          @overrides = nil
         end
 
         ##
@@ -363,9 +354,9 @@ module Google
         # queried before, otherwise this could block while trying to contact
         # the server through the given timeouts and retries.
         #
-        # This returns a Response object even if the HTTP status is 404. So be
+        # This returns a Response object even if the HTTP status is 404, so be
         # sure to check the status code to determine whether the key actually
-        # exists. It returns nil if the Metadata Server is not present.
+        # exists. Unlike {#lookup}, this method does not return nil.
         #
         # @param path [String] The key path (e.g. `project/project-id`)
         # @param query [Hash{String => String}] Any additional query parameters
@@ -383,9 +374,8 @@ module Google
         #     count. Defaults to {#retry_timeout}.
         #
         # @return [Response] the data from the metadata server
-        # @return [nil] if the Metadata Server is not present.
-        # @raise [MetadataServerNotResponding] if the Metadata Server should be
-        #     present but is not responding
+        # @raise [MetadataServerNotResponding] if the Metadata Server is not
+        #     responding
         #
         def lookup_response path,
                             query: nil,
@@ -394,13 +384,12 @@ module Google
                             retry_count: :default,
                             retry_timeout: :default
           query = canonicalize_query query
-          @mutex.synchronize do
-            if @overrides
-              @existence ||= @overrides.empty? ? :no : :confirmed
-              return @overrides.lookup path, query: query
+          raise MetadataServerNotResponding unless gce_check
+          if @overrides
+            @mutex.synchronize do
+              return lookup_override path, query if @overrides
             end
           end
-          return nil unless smbios_check
           retry_count = self.retry_count if retry_count == :default
           retry_count += 1 if retry_count
           retry_timeout = self.retry_timeout if retry_timeout == :default
@@ -438,10 +427,9 @@ module Google
         #     count. Defaults to {#retry_timeout}.
         #
         # @return [String] the data from the metadata server
-        # @return [nil] if the key is not present or the Metadata Server is not
-        #     present
-        # @raise [MetadataServerNotResponding] if the Metadata Server should be
-        #     present but is not responding
+        # @return [nil] if the key is not present
+        # @raise [MetadataServerNotResponding] if the Metadata Server is not
+        #     responding
         #
         def lookup path,
                    query: nil,
@@ -455,7 +443,6 @@ module Google
                                      request_timeout: request_timeout,
                                      retry_count: retry_count,
                                      retry_timeout: retry_timeout
-          return nil if response.nil?
           return nil unless response.status == 200 && response.headers["Metadata-Flavor"] == "Google"
           response.body
         end
@@ -490,7 +477,7 @@ module Google
                             retry_count: :default,
                             retry_timeout: :default
           current = @existence
-          return current unless current.nil? || current == :unconfirmed
+          return current if [:no, :confirmed].include? @existence
           begin
             lookup nil,
                    open_timeout: open_timeout,
@@ -519,7 +506,7 @@ module Google
 
         ##
         # Assert that the Metadata Server should be present, and wait for a
-        # confirmed connection to ensure it is up. This should generally run
+        # confirmed connection to ensure it is up. This will generally run
         # at most {#warmup_time} seconds to wait out the expected maximum
         # warmup time, but a shorter timeout can be provided.
         #
@@ -531,6 +518,8 @@ module Google
         #     expired or because the server seems to be down
         #
         def ensure_existence timeout: nil
+          timeout ||= @startup_time + warmup_time - Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          timeout = 1.0 if timeout < 1.0
           check_existence retry_count: nil, retry_timeout: timeout
           raise MetadataServerNotResponding unless @existence == :confirmed
           @existence
@@ -633,9 +622,10 @@ module Google
         # @private
         # Clear the existence cache, for testing.
         #
-        def clear_existence_cache!
+        def reset_existence!
           @mutex.synchronize do
             @existence = nil
+            @startup_time = Process.clock_gettime Process::CLOCK_MONOTONIC
           end
         end
 
@@ -657,32 +647,52 @@ module Google
 
         ##
         # @private
-        # Create and return a new LazyDict cache for the metadata
         #
-        def create_cache
-          retries = proc do
-            reset_until = @startup_time + warmup_time if warmup_time
-            Google::Cloud::Env::Retries.new max_tries: retry_count,
-                                            initial_delay: retry_interval,
-                                            delay_includes_time_elapsed: true,
-                                            reset_until: reset_until
+        # Attempt to determine if we're on GCE (if we haven't previously), and
+        # update the existence flag. Return true if we *could* be on GCE, or
+        # false if we're definitely not.
+        #
+        def gce_check
+          if @existence.nil?
+            @mutex.synchronize do
+              @existence ||=
+                if @compute_smbios.google_compute? || maybe_gcf || maybe_gcr || maybe_gae
+                  :unconfirmed
+                else
+                  :no
+                end
+            end
           end
-          Google::Cloud::Env::LazyDict.new retries: retries do |(path, query), open_timeout, request_timeout|
-            internal_lookup path, query, open_timeout, request_timeout
-          end
+          @existence != :no
+        end
+
+        # @private
+        def maybe_gcf
+          @variables["K_SERVICE"] && @variables["K_REVISION"] && @variables["GAE_RUNTIME"]
+        end
+
+        # @private
+        def maybe_gcr
+          @variables["K_SERVICE"] && @variables["K_REVISION"] && @variables["K_CONFIGURATION"]
+        end
+
+        # @private
+        def maybe_gae
+          @variables["GAE_SERVICE"] && @variables["GAE_RUNTIME"]
         end
 
         ##
         # @private
-        # Check SMBIOS (if we haven't previously), update existence, and return
-        # the check result.
+        # Create and return a new LazyDict cache for the metadata
         #
-        def smbios_check
-          current = @existence
-          return current != :no unless current.nil?
-          @mutex.synchronize do
-            @existence ||= @compute_smbios.google_compute? ? :unconfirmed : :no
-            @existence != :no
+        def create_cache
+          retries = proc do
+            Google::Cloud::Env::Retries.new max_tries: nil,
+                                            initial_delay: retry_interval,
+                                            delay_includes_time_elapsed: true
+          end
+          Google::Cloud::Env::LazyDict.new retries: retries do |(path, query), open_timeout, request_timeout|
+            internal_lookup path, query, open_timeout, request_timeout
           end
         end
 
@@ -712,14 +722,13 @@ module Google
         # Update existence based on a received result
         #
         def post_update_existence success
-          return unless @existence.nil? || @existence == :unconfirmed
+          return if @existence == :confirmed
           @mutex.synchronize do
-            if @existence.nil? || @existence == :unconfirmed
-              if success
-                @existence = :confirmed
-              elsif @existence.nil?
-                @existence = :unconfirmed
-              end
+            if success
+              @existence = :confirmed
+            elsif @existence != :confirmed &&
+                  Process.clock_gettime(Process::CLOCK_MONOTONIC) > @startup_time + warmup_time
+              @existence = :no
             end
           end
         end
@@ -773,6 +782,22 @@ module Google
         def canonicalize_query query
           query&.transform_keys(&:to_s)
         end
+
+        ##
+        # @private
+        # Lookup from overrides and return the result or raise.
+        # This must be called from within the mutex, and assumes that
+        # overrides is non-nil.
+        #
+        def lookup_override path, query
+          if @overrides.empty?
+            @existence = :no
+            raise MetadataServerNotResponding
+          end
+          result = @overrides.lookup path, query: query
+          result ||= Response.new 404, "Not found", FLAVOR_HEADER
+          result
+        end
       end
 
       ##
@@ -785,12 +810,10 @@ module Google
         # @return [String]
         #
         DEFAULT_MESSAGE =
-          "A Google Metadata Server is expected in the current " \
-          "environment, but didn't respond to queries. This could be due " \
-          "to networking issues, or the Server may not yet be up. " \
-          "If this is happening early in initialization, consider calling " \
-          "Google::Cloud::Env.ensure_metadata to wait for the Metadata " \
-          "Server to become available."
+          "The Google Metadata Server did not respond to queries. This " \
+          "could be because no Server is present, the Server has not yet " \
+          "finished starting up, the Server is running but overloaded, or " \
+          "Server could not be contacted due to networking issues."
 
         ##
         # Create a new MetadataServerNotResponding.

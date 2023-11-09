@@ -252,7 +252,7 @@ module Google
       # @return [boolean]
       #
       def cloud_shell?
-        variables["DEVSHELL_GCLOUD_CONFIG"] ? true : false
+        variables["GOOGLE_CLOUD_SHELL"] ? true : false
       end
 
       ##
@@ -293,6 +293,8 @@ module Google
           variables["GCLOUD_PROJECT"] ||
           variables["DEVSHELL_PROJECT_ID"] ||
           compute_metadata.lookup("project/project-id")
+      rescue MetadataServerNotResponding
+        nil
       end
 
       ##
@@ -310,7 +312,11 @@ module Google
         # disable this for CloudShell to avoid confusion.
         return nil if cloud_shell?
 
-        result = compute_metadata.lookup "project/numeric-project-id"
+        result = begin
+          compute_metadata.lookup "project/numeric-project-id"
+        rescue MetadataServerNotResponding
+          nil
+        end
         result&.to_i
       end
 
@@ -322,6 +328,8 @@ module Google
       #
       def instance_name
         variables["GAE_INSTANCE"] || compute_metadata.lookup("instance/name")
+      rescue MetadataServerNotResponding
+        nil
       end
 
       ##
@@ -333,6 +341,8 @@ module Google
       #
       def instance_description
         compute_metadata.lookup "instance/description"
+      rescue MetadataServerNotResponding
+        nil
       end
 
       ##
@@ -345,6 +355,8 @@ module Google
       def instance_zone
         result = compute_metadata.lookup "instance/zone"
         result&.split("/")&.last
+      rescue MetadataServerNotResponding
+        nil
       end
 
       ##
@@ -356,6 +368,8 @@ module Google
       def instance_machine_type
         result = compute_metadata.lookup "instance/machine-type"
         result&.split("/")&.last
+      rescue MetadataServerNotResponding
+        nil
       end
 
       ##
@@ -368,6 +382,8 @@ module Google
       def instance_tags
         result = compute_metadata.lookup "instance/tags"
         result.nil? ? nil : JSON.parse(result)
+      rescue MetadataServerNotResponding
+        nil
       end
 
       ##
@@ -380,6 +396,8 @@ module Google
       def instance_attribute_keys
         result = compute_metadata.lookup "instance/attributes/"
         result&.split
+      rescue MetadataServerNotResponding
+        nil
       end
 
       ##
@@ -392,6 +410,8 @@ module Google
       #
       def instance_attribute key
         compute_metadata.lookup "instance/attributes/#{key}"
+      rescue MetadataServerNotResponding
+        nil
       end
 
       ##
@@ -456,6 +476,8 @@ module Google
       #
       def kubernetes_engine_cluster_name
         instance_attribute "cluster-name"
+      rescue MetadataServerNotResponding
+        nil
       end
       alias container_engine_cluster_name kubernetes_engine_cluster_name
 
