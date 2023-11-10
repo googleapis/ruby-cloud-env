@@ -140,7 +140,9 @@ describe Google::Cloud::Env::ComputeMetadata do
         end
       end
       compute_smbios.override_product_name = "Someone Else"
-      assert_nil compute_metadata.lookup_response("project/project-id")
+      assert_raises Google::Cloud::Env::MetadataServerNotResponding do
+        compute_metadata.lookup_response("project/project-id")
+      end
       assert_equal :no, compute_metadata.existence_immediate
     end
 

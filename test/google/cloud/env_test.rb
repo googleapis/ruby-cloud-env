@@ -65,6 +65,7 @@ describe Google::Cloud::Env do
   end
   let :cloud_shell_variables do
     {
+      "GOOGLE_CLOUD_SHELL" => "true",
       "DEVSHELL_PROJECT_ID" => project_id,
       "DEVSHELL_GCLOUD_CONFIG" => "cloudshell-1234"
     }

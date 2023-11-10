@@ -3,6 +3,7 @@ inherit_gem:
 
 AllCops:
   Exclude:
+    - "integration/**/*"
     - "test/**/*"
     - "node_modules/**/*"
 Metrics/ClassLength:

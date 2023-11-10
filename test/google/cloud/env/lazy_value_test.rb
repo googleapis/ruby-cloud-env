@@ -284,37 +284,6 @@ describe Google::Cloud::Env::LazyValue do
       assert_equal 2, count
     end
 
-    it "honors reset-until" do
-      start_time = Process.clock_gettime Process::CLOCK_MONOTONIC
-      count = 0
-      retries = Google::Cloud::Env::Retries.new reset_until: start_time + 0.1
-      cache = Google::Cloud::Env::LazyValue.new retries: retries do
-        count += 1
-        raise "whoops13"
-      end
-      err1 = assert_raises RuntimeError do
-        cache.get
-      end
-      assert_equal "whoops13", err1.message
-      assert_equal 1, count
-      err2 = assert_raises RuntimeError do
-        cache.get
-      end
-      assert_equal "whoops13", err2.message
-      assert_equal 2, count
-      sleep 0.2
-      err3 = assert_raises RuntimeError do
-        cache.get
-      end
-      assert_equal "whoops13", err3.message
-      assert_equal 3, count
-      err4 = assert_raises RuntimeError do
-        cache.get
-      end
-      assert_equal "whoops13", err4.message
-      assert_equal 3, count
-    end
-
     it "does not allow thread re-entry" do
       cache = nil
       cache = Google::Cloud::Env::LazyValue.new do

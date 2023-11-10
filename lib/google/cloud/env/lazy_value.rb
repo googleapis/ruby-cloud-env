@@ -882,9 +882,6 @@ module Google
         #     attempts. Default is 0 for no change.
         # @param delay_includes_time_elapsed [true,false] Whether to deduct any
         #     time already elapsed from the retry delay. Default is false.
-        # @param reset_until [Numeric,nil] Monotonic time of the expiration of
-        #     an optional warmup period during which the retries and time are
-        #     not yet counted, and the delay remains at the initial delay.
         #
         def initialize max_tries: 1,
                        max_time: nil,
@@ -892,8 +889,7 @@ module Google
                        max_delay: nil,
                        delay_multiplier: 1,
                        delay_adder: 0,
-                       delay_includes_time_elapsed: false,
-                       reset_until: nil
+                       delay_includes_time_elapsed: false
           @max_tries = max_tries&.to_i
           raise ArgumentError, "max_tries must be positive" if @max_tries && !@max_tries.positive?
           @max_time = max_time
@@ -905,7 +901,6 @@ module Google
           @delay_multiplier = delay_multiplier
           @delay_adder = delay_adder
           @delay_includes_time_elapsed = delay_includes_time_elapsed
-          @reset_until = reset_until
           reset!
         end
 
@@ -921,8 +916,7 @@ module Google
                       max_delay: @max_delay,
                       delay_multiplier: @delay_multiplier,
                       delay_adder: @delay_adder,
-                      delay_includes_time_elapsed: @delay_includes_time_elapsed,
-                      reset_until: @reset_until
+                      delay_includes_time_elapsed: @delay_includes_time_elapsed
         end
 
         ##
@@ -968,7 +962,6 @@ module Google
         def next start_time: nil
           raise "no tries remaining" if finished?
           cur_time = Process.clock_gettime Process::CLOCK_MONOTONIC
-          return @initial_delay if @reset_until && cur_time < @reset_until
           if @current_delay == :reset
             setup_first_retry cur_time
           else

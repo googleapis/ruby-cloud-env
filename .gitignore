@@ -11,3 +11,5 @@ vendor/bundle/
 .bundle/
 .vagrant/
 .yardoc/
+integration/*/vendor/
+integration/*/google-cloud-env/
