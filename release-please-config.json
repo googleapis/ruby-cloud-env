@@ -13,7 +13,7 @@
   "packages": {
     ".": {
       "component": "google-cloud-env",
-      "version-file": "lib/googleauth/version.rb"
+      "version-file": "lib/google/cloud/env/version.rb"
     }
   }
 }
