@@ -57,6 +57,7 @@ describe Google::Cloud::Env::ComputeMetadata do
       response = compute_metadata.lookup_response "project/project-id"
       assert_equal project_id, response.body
       assert_equal 200, response.status
+      assert_in_delta Process.clock_gettime(Process::CLOCK_MONOTONIC), response.retrieval_monotonic_time, 0.1
     end
 
     it "retries a lookup" do
@@ -98,13 +99,17 @@ describe Google::Cloud::Env::ComputeMetadata do
           [200, flavor_header, project_id]
         end
       end
+      current_time = Process.clock_gettime Process::CLOCK_MONOTONIC
       response1 = compute_metadata.lookup_response "project/project-id"
       assert_equal project_id, response1.body
       assert_equal 200, response1.status
+      assert_in_delta current_time, response1.retrieval_monotonic_time, 0.1
       assert_equal 1, lookup_count
+      sleep 0.5
       response2 = compute_metadata.lookup_response "project/project-id"
       assert_equal project_id, response2.body
       assert_equal 200, response2.status
+      assert_in_delta current_time, response1.retrieval_monotonic_time, 0.1
       assert_equal 1, lookup_count
     end
 

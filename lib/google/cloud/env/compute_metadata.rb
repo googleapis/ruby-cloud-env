@@ -89,7 +89,8 @@ module Google
         # {ComputeMetadata#lookup_response}.
         #
         # This object duck-types the `status`, `body`, and `headers` fields of
-        # `Faraday::Response`.
+        # `Faraday::Response`. It also includes the CLOCK_MONOTONIC time when
+        # the data was retrieved.
         #
         class Response
           ##
@@ -105,6 +106,7 @@ module Google
             @status = status
             @body = body
             @headers = headers
+            @retrieval_monotonic_time = Process.clock_gettime Process::CLOCK_MONOTONIC
           end
 
           ##
@@ -124,6 +126,11 @@ module Google
           # @return [Hash{String=>String}]
           #
           attr_reader :headers
+
+          # The CLOCK_MONOTONIC time at which this response was retrieved.
+          # @return [Numeric]
+          #
+          attr_reader :retrieval_monotonic_time
 
           ##
           # Returns true if the metadata-flavor is correct for Google Cloud
@@ -752,9 +759,9 @@ module Google
           end
           response = Response.new http_response.status, http_response.body, http_response.headers
           if path.nil?
-            post_update_existence(response.status == 200 && response.google_flavor?)
+            post_update_existence(response.status == 200 && response.google_flavor?, response.retrieval_monotonic_time)
           elsif response.google_flavor?
-            post_update_existence true
+            post_update_existence true, response.retrieval_monotonic_time
           end
           lifetime = determine_data_lifetime path, response.body.strip
           LazyValue.expiring_value lifetime, response
@@ -767,14 +774,14 @@ module Google
         # @private
         # Update existence based on a received result
         #
-        def post_update_existence success
+        def post_update_existence success, current_time = nil
           return if @existence == :confirmed
           @mutex.synchronize do
             if success
               @existence = :confirmed
-            elsif @existence != :confirmed &&
-                  Process.clock_gettime(Process::CLOCK_MONOTONIC) > @startup_time + warmup_time
-              @existence = :no
+            elsif @existence != :confirmed
+              current_time ||= Process.clock_gettime Process::CLOCK_MONOTONIC
+              @existence = :no if current_time > @startup_time + warmup_time
             end
           end
         end
