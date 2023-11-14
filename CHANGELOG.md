@@ -1,5 +1,19 @@
 # Release History
 
+### 2.0.0 (2023-11-14)
+
+This is a major overhaul of the mechanisms underlying this gem, to improve reliability and provide better mocking interfaces. Environment interrogation calls are unchanged, but the mocking override parameters from 1.x have been removed in favor of the new interfaces, hence the semver-major version bump.
+
+This version has not yet added explicit calls for detecting newer runtimes such as Cloud Run and Cloud Functions. Those will come in the near future.
+
+#### Features
+
+* Update minimum Ruby version to 2.7
+* Provide access objects for information sources (such as environment variables, file system, and metadata server)
+* Each access object has an interface for providing mock data for testing
+* Much more robust retry policy and detection mechanisms for the metadata server
+* Provide ensure_metadata and lookup_metadata_response calls at the top level interface
+
 ### 1.7.0 (2023-05-15)
 
 #### Features

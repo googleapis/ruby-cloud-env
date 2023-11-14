@@ -20,7 +20,7 @@ module Google
       # Library version
       # @return [String]
       #
-      VERSION = "1.6.0".freeze
+      VERSION = "2.0.0".freeze
     end
   end
 end
