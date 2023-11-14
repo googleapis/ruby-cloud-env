@@ -152,8 +152,7 @@ module Google
 
       ##
       # Retrieve info from the Google Compute Engine Metadata Service.
-      # Returns `nil` if the Metadata Service is not running or the given
-      # data is not present.
+      # Returns `nil` if the given data is not present.
       #
       # @param [String] type Type of metadata to look up. Currently supported
       #     values are "project" and "instance".
@@ -162,11 +161,11 @@ module Google
       #     to send with the request.
       #
       # @return [String] the data
-      # @return [nil] if the Metadata Service is not running or there is no
-      #     data for the specified type and entry
-      # @raise [MetadataServerNotResponding] if a Metadata Service is expected
-      #     to be present in the current environment but didn't respond. This
-      #     could happen if the Server is still warming up.
+      # @return [nil] if there is no data for the specified type and entry
+      # @raise [MetadataServerNotResponding] if the Metadata Server is not
+      #     responding. This could either be because the metadata service is
+      #     not present in the current environment, or if it is expected to be
+      #     present but is overloaded or has not finished initializing.
       #
       def lookup_metadata type, entry, query: nil
         compute_metadata.lookup "#{type}/#{entry}", query: query
@@ -174,8 +173,7 @@ module Google
 
       ##
       # Retrieve an HTTP response from the Google Compute Engine Metadata
-      # Service. Returns `nil` if the Metadata Service is not running.
-      # Otherwise, returns a {ComputeMetadata::Response} with a status code,
+      # Service. Returns a {ComputeMetadata::Response} with a status code,
       # data, and headers. The response could be 200 for success, 404 if the
       # given entry is not present, or other HTTP result code for authorization
       # or other errors.
@@ -187,10 +185,10 @@ module Google
       #     to send with the request.
       #
       # @return [Google::Cloud::Env::ComputeMetadata::Response] the response
-      # @return [nil] if the Metadata Service is not running
-      # @raise [MetadataServerNotResponding] if a Metadata Service is expected
-      #     to be present in the current environment but didn't respond. This
-      #     could happen if the Server is still warming up.
+      # @raise [MetadataServerNotResponding] if the Metadata Server is not
+      #     responding. This could either be because the metadata service is
+      #     not present in the current environment, or if it is expected to be
+      #     present but is overloaded or has not finished initializing.
       #
       def lookup_metadata_response type, entry, query: nil
         compute_metadata.lookup_response "#{type}/#{entry}", query: query
