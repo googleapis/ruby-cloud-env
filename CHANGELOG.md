@@ -1,5 +1,22 @@
 # Release History
 
+### 2.0.0 (2023-11-14)
+
+#### Features
+
+* Drop support for Ruby 2.6 ([#46](https://github.com/googleapis/ruby-cloud-env/issues/46)) 
+* Provide an access object for environment variables ([#49](https://github.com/googleapis/ruby-cloud-env/issues/49)) 
+* Provide an access object for SMBIOS information ([#51](https://github.com/googleapis/ruby-cloud-env/issues/51)) 
+* Provide an access object for the file system ([#50](https://github.com/googleapis/ruby-cloud-env/issues/50)) 
+* Provide an access object for the metadata server ([#53](https://github.com/googleapis/ruby-cloud-env/issues/53)) 
+* Provide ensure_metadata and lookup_metadata_response calls ([#48](https://github.com/googleapis/ruby-cloud-env/issues/48)) 
+#### Documentation
+
+* Update readme for 2.0 release ([#57](https://github.com/googleapis/ruby-cloud-env/issues/57)) 
+### Miscellaneous Chores
+
+* Fix release-please config ([#58](https://github.com/googleapis/ruby-cloud-env/issues/58)) 
+
 ### 1.7.0 (2023-05-15)
 
 #### Features
