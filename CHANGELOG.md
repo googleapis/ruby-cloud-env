@@ -2,20 +2,17 @@
 
 ### 2.0.0 (2023-11-14)
 
+This is a major overhaul of the mechanisms underlying this gem, to improve reliability and provide better mocking interfaces. Environment interrogation calls are unchanged, but the mocking override parameters from 1.x have been removed in favor of the new interfaces, hence the semver-major version bump.
+
+This version has not yet added explicit calls for detecting newer runtimes such as Cloud Run and Cloud Functions. Those will come in the near future.
+
 #### Features
 
-* Drop support for Ruby 2.6 ([#46](https://github.com/googleapis/ruby-cloud-env/issues/46)) 
-* Provide an access object for environment variables ([#49](https://github.com/googleapis/ruby-cloud-env/issues/49)) 
-* Provide an access object for SMBIOS information ([#51](https://github.com/googleapis/ruby-cloud-env/issues/51)) 
-* Provide an access object for the file system ([#50](https://github.com/googleapis/ruby-cloud-env/issues/50)) 
-* Provide an access object for the metadata server ([#53](https://github.com/googleapis/ruby-cloud-env/issues/53)) 
-* Provide ensure_metadata and lookup_metadata_response calls ([#48](https://github.com/googleapis/ruby-cloud-env/issues/48)) 
-#### Documentation
-
-* Update readme for 2.0 release ([#57](https://github.com/googleapis/ruby-cloud-env/issues/57)) 
-### Miscellaneous Chores
-
-* Fix release-please config ([#58](https://github.com/googleapis/ruby-cloud-env/issues/58)) 
+* Update minimum Ruby version to 2.7
+* Provide access objects for information sources (such as environment variables, file system, and metadata server)
+* Each access object has an interface for providing mock data for testing
+* Much more robust retry policy and detection mechanisms for the metadata server
+* Provide ensure_metadata and lookup_metadata_response calls at the top level interface
 
 ### 1.7.0 (2023-05-15)
 
