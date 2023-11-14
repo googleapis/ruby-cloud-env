@@ -1,27 +1,26 @@
 # google-cloud-env
 
 This library provides information on the application hosting environment for
-apps running on Google Cloud Platform.
+apps running on Google Cloud Platform. This includes information on the Google
+compute product being used, the current project and credentials, and other
+information surfaced via environment variables, the file system, and the
+Metadata Server.
 
 - [google-cloud-env API documentation](https://googleapis.dev/ruby/google-cloud-env/latest)
 
 ## Supported Ruby Versions
 
-This library is supported on Ruby 2.6+.
+This library is supported on Ruby 2.7+.
 
-Google provides official support for Ruby versions that are actively supported
-by Ruby Core—that is, Ruby versions that are either in normal maintenance or
-in security maintenance, and not end of life. Older versions of Ruby _may_
-still work, but are unsupported and not recommended. See
-https://www.ruby-lang.org/en/downloads/branches/ for details about the Ruby
-support schedule.
-
-## Versioning
-
-This library follows [Semantic Versioning](http://semver.org/).
-
-It is currently in major version zero (0.y.z), which means that anything may
-change at any time and the public API should not be considered stable.
+In general, Google provides official support for CRuby versions that are
+actively supported by the Ruby Core team -- that is, Ruby versions that are
+either in normal maintenance or in security maintenance -- and for about one
+year after end of life. Older versions of Ruby _may_ still work, but are
+unsupported and not recommended. See
+https://www.ruby-lang.org/en/downloads/branches/ for more details about the
+Ruby-Core support schedule. See 
+https://cloud.google.com/ruby/getting-started/supported-ruby-versions for more
+details about Google's Ruby support schedule.
 
 ## Contributing
 
