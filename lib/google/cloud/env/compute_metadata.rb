@@ -648,6 +648,29 @@ module Google
         ##
         # @private
         #
+        # A buffer in seconds for token expiry. Our cache for the token will
+        # expire approximately this many seconds before the declared expiry
+        # time of the token itself.
+        #
+        # We want this value to be positive so that we provide some buffer to
+        # offset any clock skew and Metadata Server latency that might affect
+        # our calculation of the expiry time, but more importantly so that a
+        # client has approximately this amount of time to use a token we give
+        # them before it expires.
+        #
+        # We don't want this to be much higher, however, to keep the load down
+        # on the Metadata Server. We've been advised by the compute/serverless
+        # engineering teams to set this value less than 4 minutes because the
+        # Metadata Server can refresh the token as late as 4 minutes before the
+        # actual expiry of the previous token. If our cache expires and we
+        # request a new token, we actually want to receive a new token rather
+        # than the previous old token. See internal issue b/311414224.
+        #
+        TOKEN_EXPIRY_BUFFER = 210
+
+        ##
+        # @private
+        #
         # Attempt to determine if we're on GCE (if we haven't previously), and
         # update the existence flag. Return true if we *could* be on GCE, or
         # false if we're definitely not.
@@ -754,8 +777,7 @@ module Google
         def access_token_lifetime data
           json = JSON.parse data rescue nil
           return 0 unless json&.key? "expires_in"
-          # Buffer of 10 seconds to account for MDS latency
-          lifetime = json["expires_in"].to_i - 10
+          lifetime = json["expires_in"].to_i - TOKEN_EXPIRY_BUFFER
           lifetime = 0 if lifetime.negative?
           lifetime
         end
@@ -769,8 +791,7 @@ module Google
           base64 = Base64.decode64 Regexp.last_match[1]
           json = JSON.parse base64 rescue nil
           return 0 unless json&.key? "exp"
-          # Buffer of 10 seconds in case of clock skew
-          lifetime = json["exp"].to_i - Time.now.to_i - 10
+          lifetime = json["exp"].to_i - Time.now.to_i - TOKEN_EXPIRY_BUFFER
           lifetime = 0 if lifetime.negative?
           lifetime
         end
