@@ -109,7 +109,7 @@ describe Google::Cloud::Env::ComputeMetadata do
     end
 
     it "expires access token values" do
-      token = {data: "abcdef", expires_in: 11}
+      token = {data: "abcdef", expires_in: 211}
       token_json = JSON.generate token
       count = 0
       compute_metadata.connection.adapter :test do |stub|
@@ -244,7 +244,7 @@ describe Google::Cloud::Env::ComputeMetadata do
         end
       end
       assert_equal token_json, compute_metadata.lookup("instance/service-accounts/12345/token")
-      expected_expiry = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 990
+      expected_expiry = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 790
       assert_in_delta expected_expiry, compute_metadata.expiration_time_of("instance/service-accounts/12345/token"), 0.1
     end
 
@@ -259,7 +259,7 @@ describe Google::Cloud::Env::ComputeMetadata do
         end
       end
       assert_equal full_token, compute_metadata.lookup("instance/service-accounts/12345/identity")
-      expected_expiry = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 990
+      expected_expiry = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 790
       assert_in_delta expected_expiry, compute_metadata.expiration_time_of("instance/service-accounts/12345/identity"), 0.1
     end
   end

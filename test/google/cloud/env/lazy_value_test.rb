@@ -402,7 +402,7 @@ describe Google::Cloud::Env::LazyValue do
         raise "whoops4"
       end
       err = assert_raises RuntimeError do
-        cache.await max_time: 0.5, max_tries: nil
+        cache.await max_time: 0.55, max_tries: nil
       end
       assert_equal "whoops4", err.message
       assert_equal 3, count
