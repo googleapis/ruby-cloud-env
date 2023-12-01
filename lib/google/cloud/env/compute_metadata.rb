@@ -124,6 +124,14 @@ module Google
           # @return [Hash{String=>String}]
           #
           attr_reader :headers
+
+          ##
+          # Returns true if the metadata-flavor is correct for Google Cloud
+          # @return [boolean]
+          #
+          def google_flavor?
+            headers["Metadata-Flavor"] == "Google"
+          end
         end
 
         ##
@@ -233,20 +241,10 @@ module Google
                        compute_smbios: nil
           @variables = variables || Variables.new
           @compute_smbios = compute_smbios || ComputeSMBIOS.new
-          self.host = nil
-          @connection = Faraday.new url: host
-          self.open_timeout = DEFAULT_OPEN_TIMEOUT
-          self.request_timeout = DEFAULT_REQUEST_TIMEOUT
-          self.retry_count = DEFAULT_RETRY_COUNT
-          self.retry_timeout = DEFAULT_RETRY_TIMEOUT
-          self.retry_interval = DEFAULT_RETRY_INTERVAL
-          self.warmup_time = DEFAULT_WARMUP_TIME
-          @cache = create_cache
           # This mutex protects the overrides and existence settings.
           # Those values won't change within a synchronize block.
           @mutex = Thread::Mutex.new
-          reset_existence!
-          @overrides = nil
+          reset!
         end
 
         ##
@@ -443,7 +441,7 @@ module Google
                                      request_timeout: request_timeout,
                                      retry_count: retry_count,
                                      retry_timeout: retry_timeout
-          return nil unless response.status == 200 && response.headers["Metadata-Flavor"] == "Google"
+          return nil unless response.status == 200 && response.google_flavor?
           response.body
         end
 
@@ -620,6 +618,26 @@ module Google
 
         ##
         # @private
+        # Reset the cache, overrides, and all settings to default, for testing.
+        #
+        def reset!
+          @mutex.synchronize do
+            self.host = nil
+            @connection = Faraday.new url: host
+            self.open_timeout = DEFAULT_OPEN_TIMEOUT
+            self.request_timeout = DEFAULT_REQUEST_TIMEOUT
+            self.retry_count = DEFAULT_RETRY_COUNT
+            self.retry_timeout = DEFAULT_RETRY_TIMEOUT
+            self.retry_interval = DEFAULT_RETRY_INTERVAL
+            self.warmup_time = DEFAULT_WARMUP_TIME
+            @cache = create_cache
+            @overrides = nil
+          end
+          reset_existence!
+        end
+
+        ##
+        # @private
         # Clear the existence cache, for testing.
         #
         def reset_existence!
@@ -627,6 +645,7 @@ module Google
             @existence = nil
             @startup_time = Process.clock_gettime Process::CLOCK_MONOTONIC
           end
+          self
         end
 
         private
@@ -731,8 +750,12 @@ module Google
             req.options.timeout = request_timeout if request_timeout
             req.options.open_timeout = open_timeout if open_timeout
           end
-          post_update_existence true
           response = Response.new http_response.status, http_response.body, http_response.headers
+          if path.nil?
+            post_update_existence(response.status == 200 && response.google_flavor?)
+          elsif response.google_flavor?
+            post_update_existence true
+          end
           lifetime = determine_data_lifetime path, response.body.strip
           LazyValue.expiring_value lifetime, response
         rescue *TRANSIENT_EXCEPTIONS
