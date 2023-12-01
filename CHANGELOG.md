@@ -1,5 +1,12 @@
 # Release History
 
+### 2.0.1 (2023-12-01)
+
+#### Bug Fixes
+
+* Bad response status or flavor headers no longer signal positive metadata existence ([#61](https://github.com/googleapis/ruby-cloud-env/issues/61)) 
+* Increase token expiry buffer to three and a half minutes ([#59](https://github.com/googleapis/ruby-cloud-env/issues/59)) 
+
 ### 2.0.0 (2023-11-14)
 
 This is a major overhaul of the mechanisms underlying this gem, to improve reliability and provide better mocking interfaces. Environment interrogation calls are unchanged, but the mocking override parameters from 1.x have been removed in favor of the new interfaces, hence the semver-major version bump.
