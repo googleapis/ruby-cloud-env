@@ -1,5 +1,11 @@
 # Release History
 
+### 2.1.0 (2023-12-12)
+
+#### Features
+
+* Provide retrieval_monotonic_time on compute metadata response objects ([#62](https://github.com/googleapis/ruby-cloud-env/issues/62)) 
+
 ### 2.0.1 (2023-12-01)
 
 #### Bug Fixes
