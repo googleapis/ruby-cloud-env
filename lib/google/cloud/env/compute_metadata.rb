@@ -389,12 +389,12 @@ module Google
                             retry_count: :default,
                             retry_timeout: :default
           query = canonicalize_query query
-          raise MetadataServerNotResponding unless gce_check
           if @overrides
             @mutex.synchronize do
               return lookup_override path, query if @overrides
             end
           end
+          raise MetadataServerNotResponding unless gce_check
           retry_count = self.retry_count if retry_count == :default
           retry_count += 1 if retry_count
           retry_timeout = self.retry_timeout if retry_timeout == :default
@@ -845,6 +845,7 @@ module Google
             @existence = :no
             raise MetadataServerNotResponding
           end
+          @existence = :confirmed
           result = @overrides.lookup path, query: query
           result ||= Response.new 404, "Not found", FLAVOR_HEADER
           result
