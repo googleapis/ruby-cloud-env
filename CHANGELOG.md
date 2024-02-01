@@ -1,5 +1,11 @@
 # Release History
 
+### 2.1.1 (2024-02-01)
+
+#### Bug Fixes
+
+* Setting non-empty overrides simulates metadata server existence setting ([#64](https://github.com/googleapis/ruby-cloud-env/issues/64)) 
+
 ### 2.1.0 (2023-12-12)
 
 #### Features
