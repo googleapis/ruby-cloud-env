@@ -160,6 +160,7 @@ describe Google::Cloud::Env do
     _(env.cloud_shell?).must_equal false
     _(env.compute_engine?).must_equal true
     _(env.raw_compute_engine?).must_equal false
+    _(env.logging_agent_expected?).must_equal true
 
     _(env.project_id).must_equal project_id
     _(env.numeric_project_id).must_equal numeric_project_id
@@ -189,6 +190,7 @@ describe Google::Cloud::Env do
     _(env.cloud_shell?).must_equal false
     _(env.compute_engine?).must_equal true
     _(env.raw_compute_engine?).must_equal false
+    _(env.logging_agent_expected?).must_equal true
 
     _(env.project_id).must_equal project_id
     _(env.numeric_project_id).must_equal numeric_project_id
@@ -218,6 +220,7 @@ describe Google::Cloud::Env do
     _(env.cloud_shell?).must_equal false
     _(env.compute_engine?).must_equal true
     _(env.raw_compute_engine?).must_equal false
+    _(env.logging_agent_expected?).must_equal true
 
     _(env.project_id).must_equal project_id
     _(env.numeric_project_id).must_equal numeric_project_id
@@ -247,6 +250,7 @@ describe Google::Cloud::Env do
     _(env.cloud_shell?).must_equal false
     _(env.compute_engine?).must_equal true
     _(env.raw_compute_engine?).must_equal false
+    _(env.logging_agent_expected?).must_equal true
 
     _(env.project_id).must_equal project_id
     _(env.numeric_project_id).must_equal numeric_project_id
@@ -276,6 +280,7 @@ describe Google::Cloud::Env do
     _(env.cloud_shell?).must_equal true
     _(env.compute_engine?).must_equal true
     _(env.raw_compute_engine?).must_equal false
+    _(env.logging_agent_expected?).must_equal false
 
     _(env.project_id).must_equal project_id
     _(env.numeric_project_id).must_be_nil
@@ -292,7 +297,7 @@ describe Google::Cloud::Env do
     _(env.kubernetes_engine_namespace_id).must_be_nil
   end
 
-  it "returns correct values when running on compute engine" do
+  it "returns correct values when running on raw compute engine" do
     env.variables.backing_data = gce_variables
     env.compute_smbios.override_product_name = "Google"
     env.compute_metadata.overrides = gce_metadata_overrides
@@ -305,6 +310,7 @@ describe Google::Cloud::Env do
     _(env.cloud_shell?).must_equal false
     _(env.compute_engine?).must_equal true
     _(env.raw_compute_engine?).must_equal true
+    _(env.logging_agent_expected?).must_equal false
 
     _(env.project_id).must_equal project_id
     _(env.numeric_project_id).must_equal numeric_project_id
@@ -334,6 +340,7 @@ describe Google::Cloud::Env do
     _(env.cloud_shell?).must_equal false
     _(env.compute_engine?).must_equal false
     _(env.raw_compute_engine?).must_equal false
+    _(env.logging_agent_expected?).must_equal false
 
     _(env.project_id).must_be_nil
     _(env.numeric_project_id).must_be_nil
