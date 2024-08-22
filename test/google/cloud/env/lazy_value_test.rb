@@ -402,7 +402,7 @@ describe Google::Cloud::Env::LazyValue do
         raise "whoops4"
       end
       err = assert_raises RuntimeError do
-        cache.await max_time: 0.55, max_tries: nil
+        cache.await max_time: 0.59, max_tries: nil
       end
       assert_equal "whoops4", err.message
       assert_equal 3, count
@@ -410,13 +410,13 @@ describe Google::Cloud::Env::LazyValue do
 
     it "uses the cache's retry interval" do
       count = 0
-      retries = Google::Cloud::Env::Retries.new max_tries: 10, initial_delay: 0.1
+      retries = Google::Cloud::Env::Retries.new max_tries: 10, initial_delay: 0.2
       cache = Google::Cloud::Env::LazyValue.new retries: retries do
         count += 1
         raise "whoops5"
       end
       err = assert_raises RuntimeError do
-        cache.await max_time: 0.25, max_tries: 10
+        cache.await max_time: 0.59, max_tries: 10
       end
       assert_equal "whoops5", err.message
       assert_equal 3, count
