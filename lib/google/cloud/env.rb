@@ -498,6 +498,19 @@ module Google
       alias container_engine_namespace_id kubernetes_engine_namespace_id
 
       ##
+      # Determine whether the application is running in an environment where a
+      # Google Cloud logging agent is expected to be running. In such an
+      # environment, we expect that the standard output and error streams are
+      # likely to be parsed by the logging agent and log entries are written to
+      # the Google Cloud Logging service.
+      #
+      # @return [boolean]
+      #
+      def logging_agent_expected?
+        compute_engine? && !cloud_shell? && (app_engine? || knative? || kubernetes_engine?)
+      end
+
+      ##
       # Returns the global instance of {Google::Cloud::Env}.
       #
       # @return [Google::Cloud::Env]
