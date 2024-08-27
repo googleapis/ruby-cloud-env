@@ -1,5 +1,12 @@
 # Release History
 
+### 2.2.0 (2024-08-22)
+
+#### Features
+
+* Provide a query for whether a logging agent is expected in the current environment ([#70](https://github.com/googleapis/ruby-cloud-env/issues/70)) 
+* Require Ruby 3.0 or later ([#71](https://github.com/googleapis/ruby-cloud-env/issues/71)) 
+
 ### 2.1.1 (2024-02-01)
 
 #### Bug Fixes
