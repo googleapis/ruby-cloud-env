@@ -254,9 +254,12 @@ describe Google::Cloud::Env::ComputeMetadata do
     end
 
     it "gets lifetime for an identity token" do
-      token = {data: "abcdef", exp: Time.now.to_i + 1000}
+      # Note: the encoded token below includes one of the extra Base64
+      # characters (specifically underscore for the urlsafe variant) so this
+      # test also checks that urlsafe is properly used to decode.
+      token = {data: "???", exp: Time.now.to_i + 1000}
       token_json = JSON.generate token
-      token_encoded = Base64.strict_encode64 token_json
+      token_encoded = Base64.urlsafe_encode64 token_json
       full_token = "12345.#{token_encoded}.67890"
       compute_metadata.connection.adapter :test do |stub|
         stub.get "/computeMetadata/v1/instance/service-accounts/12345/identity" do |_env|
@@ -266,6 +269,28 @@ describe Google::Cloud::Env::ComputeMetadata do
       assert_equal full_token, compute_metadata.lookup("instance/service-accounts/12345/identity")
       expected_expiry = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 790
       assert_in_delta expected_expiry, compute_metadata.expiration_time_of("instance/service-accounts/12345/identity"), 0.1
+    end
+
+    it "defaults to zero lifetime when failing to parse access token response" do
+      compute_metadata.connection.adapter :test do |stub|
+        stub.get "/computeMetadata/v1/instance/service-accounts/12345/token" do |_env|
+          [404, flavor_header, '"Not found"']
+        end
+      end
+      assert_nil compute_metadata.lookup "instance/service-accounts/12345/token"
+      expected_expiry = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      assert_in_delta expected_expiry, compute_metadata.expiration_time_of("instance/service-accounts/12345/token")
+    end
+
+    it "defaults to zero lifetime when failing to parse identity token response" do
+      compute_metadata.connection.adapter :test do |stub|
+        stub.get "/computeMetadata/v1/instance/service-accounts/12345/identity" do |_env|
+          [404, flavor_header, '"Not found"']
+        end
+      end
+      assert_nil compute_metadata.lookup "instance/service-accounts/12345/identity"
+      expected_expiry = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      assert_in_delta expected_expiry, compute_metadata.expiration_time_of("instance/service-accounts/12345/identity")
     end
   end
 
