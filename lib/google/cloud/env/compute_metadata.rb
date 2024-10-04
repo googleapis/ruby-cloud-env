@@ -806,7 +806,7 @@ module Google
         #
         def access_token_lifetime data
           json = JSON.parse data rescue nil
-          return 0 unless json&.key? "expires_in"
+          return 0 unless json.respond_to?(:key?) && json.key?("expires_in")
           lifetime = json["expires_in"].to_i - TOKEN_EXPIRY_BUFFER
           lifetime = 0 if lifetime.negative?
           lifetime
@@ -818,9 +818,9 @@ module Google
         #
         def identity_token_lifetime data
           return 0 unless data =~ /^[\w=-]+\.([\w=-]+)\.[\w=-]+$/
-          base64 = Base64.decode64 Regexp.last_match[1]
+          base64 = Base64.urlsafe_decode64 Regexp.last_match[1]
           json = JSON.parse base64 rescue nil
-          return 0 unless json&.key? "exp"
+          return 0 unless json.respond_to?(:key?) && json&.key?("exp")
           lifetime = json["exp"].to_i - Time.now.to_i - TOKEN_EXPIRY_BUFFER
           lifetime = 0 if lifetime.negative?
           lifetime
