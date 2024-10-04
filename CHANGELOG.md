@@ -1,5 +1,11 @@
 # Release History
 
+### 2.2.1 (2024-10-04)
+
+#### Bug Fixes
+
+* Fixed edge cases in token expiration extraction ([#73](https://github.com/googleapis/ruby-cloud-env/issues/73)) 
+
 ### 2.2.0 (2024-08-22)
 
 #### Features
