@@ -522,7 +522,7 @@ describe Google::Cloud::Env::LazyValue do
 
     it "reflects computing state" do
       cache = Google::Cloud::Env::LazyValue.new do
-        sleep 0.2
+        sleep 0.3
         2
       end
       start_time = nil
