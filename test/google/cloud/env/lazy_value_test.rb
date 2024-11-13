@@ -260,9 +260,9 @@ describe Google::Cloud::Env::LazyValue do
 
     it "includes time elapsed in a retry delay" do
       count = 0
-      retries = Google::Cloud::Env::Retries.new max_tries: 3, initial_delay: 0.2, delay_includes_time_elapsed: true
+      retries = Google::Cloud::Env::Retries.new max_tries: 3, initial_delay: 0.39, delay_includes_time_elapsed: true
       cache = Google::Cloud::Env::LazyValue.new retries: retries do
-        sleep 0.1
+        sleep 0.2
         count += 1
         raise "whoops12" unless count >= 2
         12
@@ -277,7 +277,7 @@ describe Google::Cloud::Env::LazyValue do
       end
       assert_equal "whoops12", err2.message
       assert_equal 1, count
-      sleep 0.15
+      sleep 0.3
       assert_equal 12, cache.get
       assert_equal 2, count
       assert_equal 12, cache.get
