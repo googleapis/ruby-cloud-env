@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-toys_version! ">= 0.15.2"
+toys_version! ">= 0.15.6"
 
 expand :clean, paths: :gitignore
 

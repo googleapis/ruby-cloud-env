@@ -20,6 +20,7 @@ Gem::Specification.new do |gem|
 
   gem.required_ruby_version = ">= 3.0"
 
+  gem.add_dependency "base64", "~> 0.2"
   gem.add_dependency "faraday", ">= 1.0", "< 3.a"
 
   if gem.respond_to? :metadata
