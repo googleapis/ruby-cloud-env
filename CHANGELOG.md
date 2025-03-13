@@ -1,5 +1,11 @@
 # Release History
 
+### 2.2.2 (2025-03-13)
+
+#### Bug Fixes
+
+* Updated dependencies to include base64 for Ruby 3.4 ([#81](https://github.com/googleapis/ruby-cloud-env/issues/81)) 
+
 ### 2.2.1 (2024-10-04)
 
 #### Bug Fixes
