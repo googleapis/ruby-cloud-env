@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
   gem.files         = Dir.glob("lib/**/*.rb") + Dir.glob("*.md") + ["LICENSE", ".yardopts"]
   gem.require_paths = ["lib"]
 
-  gem.required_ruby_version = ">= 3.0"
+  gem.required_ruby_version = ">= 3.1"
 
   gem.add_dependency "base64", "~> 0.2"
   gem.add_dependency "faraday", ">= 1.0", "< 3.a"

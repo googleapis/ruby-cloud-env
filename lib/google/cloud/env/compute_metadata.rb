@@ -671,6 +671,7 @@ module Google
           Errno::ETIMEDOUT,
           Timeout::Error
         ].freeze
+        private_constant :TRANSIENT_EXCEPTIONS
 
         ##
         # @private
@@ -694,6 +695,7 @@ module Google
         # than the previous old token. See internal issue b/311414224.
         #
         TOKEN_EXPIRY_BUFFER = 210
+        private_constant :TOKEN_EXPIRY_BUFFER
 
         ##
         # @private
