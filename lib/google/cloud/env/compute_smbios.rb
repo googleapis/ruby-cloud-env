@@ -123,7 +123,7 @@ module Google
           Win32::Registry::HKEY_LOCAL_MACHINE.open WINDOWS_KEYPATH do |reg|
             return [reg[WINDOWS_KEYNAME].to_s, :windows]
           end
-        rescue LoadError
+        rescue LoadError, Fiddle::DLError
           begin
             File.open LINUX_FILEPATH do |file|
               return [file.readline(chomp: true), :linux]
