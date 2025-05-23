@@ -30,7 +30,12 @@ def run
 end
 
 def check_links
-  result = exec ["npx", "linkinator", "./doc"], out: :capture
+  cmd = [
+    "npx", "linkinator", "./doc",
+    "--reetry-errors",
+    "--skip", "^https?://stackoverflow\\.com/questions/tagged/google-cloud-platform\\+ruby$"
+  ]
+  result = exec cmd, out: :capture
   puts result.captured_out
   checked_links = result.captured_out.split "\n"
   checked_links.select! { |link| link =~ /^\[(\d+)\]/ && ::Regexp.last_match[1] != "200" }
