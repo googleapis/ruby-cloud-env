@@ -119,23 +119,20 @@ module Google
         private_constant :WINDOWS_KEYPATH, :WINDOWS_KEYNAME, :LINUX_FILEPATH
 
         def load_product_name
-        begin
-          require "win32/registry"
-          Win32::Registry::HKEY_LOCAL_MACHINE.open WINDOWS_KEYPATH do |reg|
-            return [reg[WINDOWS_KEYNAME].to_s, :windows]
-          end
-        rescue LoadError
-          # Fall through to the Linux routine
-        rescue StandardError => e
-          # With JRuby 10, a Fiddle::DLError is raised, In the case the fiddle gem is not
-          # loadable, safely assert the error type without relying on the Fiddle namespace
-          # having been loaded.
-          if e.class.name == "Fiddle::DLError"
+          begin
+            require "win32/registry"
+            Win32::Registry::HKEY_LOCAL_MACHINE.open WINDOWS_KEYPATH do |reg|
+              return [reg[WINDOWS_KEYNAME].to_s, :windows]
+            end
+          rescue LoadError
             # Fall through to the Linux routine
-          else
-            raise e
+          rescue StandardError => e
+            # With JRuby 10, a Fiddle::DLError is raised, In the case the fiddle gem is not
+            # loadable, safely assert the error type without relying on the Fiddle namespace
+            # having been loaded.
+            raise e unless e.class.name == "Fiddle::DLError" # rubocop:disable Style/ClassEqualityComparison
+            # Fall through to the Linux routine
           end
-        end
           begin
             File.open LINUX_FILEPATH do |file|
               return [file.readline(chomp: true), :linux]
