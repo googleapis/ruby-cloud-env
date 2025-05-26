@@ -1,5 +1,11 @@
 # Release History
 
+### 2.3.1 (2025-05-23)
+
+#### Bug Fixes
+
+* Compatibility fix for JRuby 10 on non-Windows systems ([#86](https://github.com/googleapis/ruby-cloud-env/issues/86)) 
+
 ### 2.3.0 (2025-04-30)
 
 #### Features
