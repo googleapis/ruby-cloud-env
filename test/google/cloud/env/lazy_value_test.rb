@@ -448,9 +448,9 @@ describe Google::Cloud::Env::LazyValue do
         count += 1
         1
       end
-      cache.set!(2)
-      assert_equal(2, cache.get)
-      assert_equal(0, count)
+      cache.set! 2
+      assert_equal 2, cache.get
+      assert_equal 0, count
     end
 
     it "modifies the value if computation is finished" do
@@ -459,18 +459,18 @@ describe Google::Cloud::Env::LazyValue do
         count += 1
         1
       end
-      assert_equal(1, cache.get)
-      assert_equal(1, count)
-      cache.set!(2)
-      assert_equal(2, cache.get)
-      assert_equal(1, count)
+      assert_equal 1, cache.get
+      assert_equal 1, count
+      cache.set! 2
+      assert_equal 2, cache.get
+      assert_equal 1, count
     end
 
     it "throws away the computation if one is in progress when set! is called" do
       count = 0
       cache = Google::Cloud::Env::LazyValue.new do
         count += 1
-        sleep(0.4)
+        sleep 0.4
         count += 1
         3
       end
@@ -478,12 +478,12 @@ describe Google::Cloud::Env::LazyValue do
         cache.get
       end
       thread2 = Thread.new do
-        sleep(0.1)
+        sleep 0.1
         cache.get
       end
       thread3 = Thread.new do
-        sleep(0.2)
-        cache.set!(4)
+        sleep 0.2
+        cache.set! 4
       end
       thread3.join
       assert_equal 4, cache.get
