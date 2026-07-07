@@ -3,7 +3,8 @@ source "https://rubygems.org"
 gemspec
 
 gem "autotest-suffix", "~> 1.1"
-gem "google-style", "~> 1.31.0"
+gem "fiddle", "~> 1.1"
+gem "google-style", "~> 1.32.0"
 gem "minitest", "~> 5.16"
 gem "minitest-autotest", "~> 1.0"
 gem "minitest-focus", "~> 1.1"

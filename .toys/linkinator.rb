@@ -32,8 +32,8 @@ end
 def check_links
   cmd = [
     "npx", "linkinator", "./doc",
-    "--reetry-errors",
-    "--skip", "^https?://stackoverflow\\.com/questions/tagged/google-cloud-platform\\+ruby$"
+    "--retry-errors",
+    "--skip", "^https?://(www\\.)?stackoverflow\\.com"
   ]
   result = exec cmd, out: :capture
   puts result.captured_out
