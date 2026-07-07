@@ -1,5 +1,11 @@
 # Release History
 
+### 2.4.0 (2026-07-07)
+
+#### Features
+
+* Ruby 3.2 minimum and Ruby 4.0 support ([#100](https://github.com/googleapis/ruby-cloud-env/issues/100)) 
+
 ### 2.3.1 (2025-05-23)
 
 #### Bug Fixes
