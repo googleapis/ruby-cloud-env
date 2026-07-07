@@ -10,7 +10,7 @@ Metadata Server.
 
 ## Supported Ruby Versions
 
-This library is supported on Ruby 3.0+.
+This library is supported on Ruby 3.2+.
 
 In general, Google provides official support for CRuby versions that are
 actively supported by the Ruby Core team -- that is, Ruby versions that are
