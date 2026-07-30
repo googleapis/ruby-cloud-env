@@ -284,7 +284,7 @@ describe Google::Cloud::Env::LazyValue do
       assert_equal 2, count
     end
 
-    it "does not allow thread re-entry" do
+    it "does not allow fiber re-entry" do
       cache = nil
       cache = Google::Cloud::Env::LazyValue.new do
         cache.get
