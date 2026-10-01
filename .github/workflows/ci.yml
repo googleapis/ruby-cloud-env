@@ -55,7 +55,7 @@ jobs:
         node-version: "24.x"
     - name: Install tools
       shell: bash
-      run: "gem install --no-document toys"
+      run: "gem install --no-document toys -v '~> 0.22.0'"
     - name: Test ${{ matrix.task }}
       shell: bash
       run: |
