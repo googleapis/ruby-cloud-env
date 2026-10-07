@@ -1,5 +1,11 @@
 # Release History
 
+### 2.4.1 (2026-10-07)
+
+#### Documentation
+
+* trigger a release to verify the new publishing pipeline ([#115](https://github.com/googleapis/ruby-cloud-env/issues/115)) 
+
 ### 2.4.0 (2026-07-07)
 
 #### Features
