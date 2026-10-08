@@ -415,7 +415,7 @@ module Google
             @expires_at = determine_expiry lifetime
             @error = nil
             @retries.finish!
-            if @compute_notify.nil?
+            unless @compute_notify.nil?
               enter_backfill
               leave_compute
             end
@@ -599,7 +599,7 @@ module Google
             enter_backfill
             leave_compute
           end
-          value
+          cached_value
         end
 
         ##
@@ -629,7 +629,7 @@ module Google
             enter_backfill
             leave_compute
           end
-          raise error
+          cached_value
         end
 
         ##
