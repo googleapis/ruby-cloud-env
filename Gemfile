@@ -11,3 +11,7 @@ gem "minitest-focus", "~> 1.1"
 gem "minitest-rg", "~> 5.2"
 gem "redcarpet", "~> 3.0"
 gem "yard", "~> 0.9"
+
+group :test do
+  gem "async", "~> 2.35"
+end

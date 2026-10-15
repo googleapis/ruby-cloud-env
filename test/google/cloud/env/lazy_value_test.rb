@@ -15,6 +15,7 @@
 # limitations under the License.
 
 require "helper"
+require "async"
 require "google/cloud/env/lazy_value"
 
 describe Google::Cloud::Env::LazyValue do
@@ -284,7 +285,7 @@ describe Google::Cloud::Env::LazyValue do
       assert_equal 2, count
     end
 
-    it "does not allow thread re-entry" do
+    it "does not allow fiber re-entry" do
       cache = nil
       cache = Google::Cloud::Env::LazyValue.new do
         cache.get
@@ -293,6 +294,24 @@ describe Google::Cloud::Env::LazyValue do
         cache.get
       end
       assert_equal "deadlock: tried to call LazyValue#get from its own computation", err.message
+    end
+
+    it "allows multiple fibers on the same thread to wait for computation" do
+      cache = Google::Cloud::Env::LazyValue.new do
+        Async::Task.current.yield
+        "computed_value"
+      end
+
+      values = Sync do
+        tasks = 2.times.map do
+          Async do
+            cache.get
+          end
+        end
+        tasks.map(&:wait)
+      end
+
+      assert_equal ["computed_value", "computed_value"], values
     end
 
     it "returns an expiring value" do
