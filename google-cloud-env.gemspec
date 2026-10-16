@@ -24,7 +24,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "faraday", ">= 1.0", "< 3.a"
 
   if gem.respond_to? :metadata
-    gem.metadata["changelog_uri"] = "https://rubydoc.info/gems/google-cloud-env/#{gem_version}/CHANGELOG.md"
+    gem.metadata["changelog_uri"] = "https://github.com/googleapis/ruby-cloud-env/blob/google-cloud-env/v#{gem_version}/CHANGELOG.md"
     gem.metadata["source_code_uri"] = "https://github.com/googleapis/ruby-cloud-env"
     gem.metadata["bug_tracker_uri"] = "https://github.com/googleapis/ruby-cloud-env/issues"
     gem.metadata["documentation_uri"] = "https://rubydoc.info/gems/google-cloud-env/#{gem_version}"
