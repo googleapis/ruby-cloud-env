@@ -134,7 +134,7 @@ module Google
           #     @expires_at is set to the monotonic time of the end of the
           #         current retry delay, or nil if the next computation attempt
           #         should happen immediately at the next access.
-          #     @computing_thread is nil.
+          #     @computing_fiber is nil.
           #     @compute_notify is nil.
           #     @backfill_notify is set if currently backfilling, otherwise nil.
           #     From this state, calling #get will start computation (first
@@ -147,7 +147,7 @@ module Google
           #     @retries.finished? is false.
           #     @value and @error are nil.
           #     @expires_at is set to the monotonic time when computing started.
-          #     @computing_thread is set to the thread that is computing.
+          #     @computing_fiber is set to the fiber that is computing.
           #     @compute_notify is set.
           #     @backfill_notify is nil.
           #     From this state, calling #get will cause the thread to wait
@@ -167,7 +167,7 @@ module Google
           #         are nil, it is considered a @value of nil.)
           #     @expires_at is set to the monotonic time of expiration, or nil
           #         if there is no expiration.
-          #     @computing_thread is nil.
+          #     @computing_fiber is nil.
           #     @compute_notify is nil.
           #     @backfill_notify is set if currently backfilling, otherwise nil.
           #     From this state, calling #get will either return the result or
@@ -225,13 +225,13 @@ module Google
           # The number of threads waiting on backfill. Used to determine
           # whether to activate backfill_notify when a computation completes.
           @backfill_count = 0
-          # The thread running the current computation. This is tested against
-          # new requests to protect against deadlocks where a thread tries to
+          # The fiber running the current computation. This is tested against
+          # new requests to protect against deadlocks where a fiber tries to
           # re-enter from its own computation. This is also tested when a
           # computation completes, to ensure that the computation is still
           # relevant (i.e. if #set! interrupts a computation, this is reset to
           # nil).
-          @computing_thread = nil
+          @computing_fiber = nil
         end
 
         ##
@@ -520,7 +520,7 @@ module Google
         # This must be called from within the mutex.
         #
         def wait_compute
-          if Thread.current.equal? @computing_thread
+          if Fiber.current.equal? @computing_fiber
             raise ThreadError, "deadlock: tried to call LazyValue#get from its own computation"
           end
           @backfill_count += 1
@@ -538,7 +538,7 @@ module Google
         # This must be called from within the mutex.
         #
         def enter_compute cur_time
-          @computing_thread = Thread.current
+          @computing_fiber = Fiber.current
           @compute_notify = Thread::ConditionVariable.new
           @expires_at = cur_time
           @value = @error = nil
@@ -550,7 +550,7 @@ module Google
         # This must be called from within the mutex.
         #
         def leave_compute
-          @computing_thread = nil
+          @computing_fiber = nil
           @compute_notify.broadcast
           @compute_notify = nil
         end
@@ -591,7 +591,7 @@ module Google
             expires_at = determine_expiry value.lifetime
             value = value.value
           end
-          if Thread.current.equal? @computing_thread
+          if Fiber.current.equal? @computing_fiber
             @retries.finish!
             @error = nil
             @value = value
@@ -615,7 +615,7 @@ module Google
             expires_at = determine_expiry error.lifetime
             error = error.cause
           end
-          if Thread.current.equal? @computing_thread
+          if Fiber.current.equal? @computing_fiber
             retry_delay = @retries.next start_time: @expires_at
             @value = nil
             @error = error
