@@ -225,12 +225,13 @@ module Google
           # The number of threads waiting on backfill. Used to determine
           # whether to activate backfill_notify when a computation completes.
           @backfill_count = 0
-          # The thread running the current computation. This is tested against
-          # new requests to protect against deadlocks where a thread tries to
-          # re-enter from its own computation. This is also tested when a
-          # computation completes, to ensure that the computation is still
-          # relevant (i.e. if #set! interrupts a computation, this is reset to
-          # nil).
+          # The thread running the current computation (or the fiber, when a
+          # fiber scheduler is active; see #current_owner). This is tested
+          # against new requests to protect against deadlocks where a thread
+          # tries to re-enter from its own computation. This is also tested
+          # when a computation completes, to ensure that the computation is
+          # still relevant (i.e. if #set! interrupts a computation, this is
+          # reset to nil).
           @computing_thread = nil
         end
 
@@ -520,7 +521,7 @@ module Google
         # This must be called from within the mutex.
         #
         def wait_compute
-          if Thread.current.equal? @computing_thread
+          if current_owner.equal? @computing_thread
             raise ThreadError, "deadlock: tried to call LazyValue#get from its own computation"
           end
           @backfill_count += 1
@@ -534,11 +535,23 @@ module Google
 
         ##
         # @private
+        # Returns the object that identifies the current caller for the
+        # purpose of tracking which caller is computing. Under a fiber
+        # scheduler, fibers on the same thread wait for each other
+        # independently, so each fiber is its own caller. Otherwise, a waiting
+        # fiber blocks its whole thread, so the thread is the caller.
+        #
+        def current_owner
+          Fiber.scheduler ? Fiber.current : Thread.current
+        end
+
+        ##
+        # @private
         # Initializes compute mode.
         # This must be called from within the mutex.
         #
         def enter_compute cur_time
-          @computing_thread = Thread.current
+          @computing_thread = current_owner
           @compute_notify = Thread::ConditionVariable.new
           @expires_at = cur_time
           @value = @error = nil
@@ -591,7 +604,7 @@ module Google
             expires_at = determine_expiry value.lifetime
             value = value.value
           end
-          if Thread.current.equal? @computing_thread
+          if current_owner.equal? @computing_thread
             @retries.finish!
             @error = nil
             @value = value
@@ -615,7 +628,7 @@ module Google
             expires_at = determine_expiry error.lifetime
             error = error.cause
           end
-          if Thread.current.equal? @computing_thread
+          if current_owner.equal? @computing_thread
             retry_delay = @retries.next start_time: @expires_at
             @value = nil
             @error = error

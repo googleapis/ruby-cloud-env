@@ -17,6 +17,59 @@
 require "helper"
 require "google/cloud/env/lazy_value"
 
+# A minimal Fiber::Scheduler: enough for fibers that sleep or wait on a
+# Mutex or ConditionVariable, all on one thread. Scheduled fibers run until
+# they first block; the rest runs when the thread exits and calls #close.
+class TestFiberScheduler
+  def initialize
+    @ready = []
+    # Blocked fibers, mapped to the monotonic time they wake at, or to nil if
+    # they wait for #unblock.
+    @blocked = {}
+  end
+
+  def fiber(&block)
+    fiber = Fiber.new blocking: false, &block
+    fiber.resume
+    fiber
+  end
+
+  def kernel_sleep duration = nil
+    @blocked[Fiber.current] = duration && (now + duration)
+    Fiber.yield
+  end
+
+  def block _blocker, timeout = nil
+    kernel_sleep timeout
+  end
+
+  def unblock _blocker, fiber
+    @blocked.delete fiber
+    @ready << fiber
+  end
+
+  def io_wait _io, _events, _timeout
+    raise NotImplementedError
+  end
+
+  def close
+    until @ready.empty? && @blocked.empty?
+      @ready.shift.resume until @ready.empty?
+      next if @blocked.empty?
+      wake_at = @blocked.values.compact.min
+      raise "TestFiberScheduler: every fiber is blocked" unless wake_at
+      sleep [wake_at - now, 0].max
+      @blocked.select { |_fiber, time| time && time <= now }.each_key { |fiber| unblock nil, fiber }
+    end
+  end
+
+  private
+
+  def now
+    Process.clock_gettime Process::CLOCK_MONOTONIC
+  end
+end
+
 describe Google::Cloud::Env::LazyValue do
   describe "#get" do
     it "returns the correct value" do
@@ -292,6 +345,43 @@ describe Google::Cloud::Env::LazyValue do
       err = assert_raises ThreadError do
         cache.get
       end
+      assert_equal "deadlock: tried to call LazyValue#get from its own computation", err.message
+    end
+
+    it "causes fibers under a fiber scheduler to wait if a block is already running" do
+      count = 0
+      cache = Google::Cloud::Env::LazyValue.new do
+        sleep 0.1
+        count += 1
+        4
+      end
+      values = []
+      Thread.new do
+        Fiber.set_scheduler TestFiberScheduler.new
+        3.times do
+          Fiber.schedule do
+            values << cache.get
+          end
+        end
+      end.join
+      assert_equal [4, 4, 4], values
+      assert_equal 1, count
+    end
+
+    it "does not allow fiber re-entry under a fiber scheduler" do
+      cache = nil
+      cache = Google::Cloud::Env::LazyValue.new do
+        cache.get
+      end
+      err = nil
+      Thread.new do
+        Fiber.set_scheduler TestFiberScheduler.new
+        Fiber.schedule do
+          err = assert_raises ThreadError do
+            cache.get
+          end
+        end
+      end.join
       assert_equal "deadlock: tried to call LazyValue#get from its own computation", err.message
     end
 
